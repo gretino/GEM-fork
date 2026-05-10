@@ -1,0 +1,2402 @@
+[
+  {
+    "id": "18462",
+    "image": "ptb-xl-gen/records500/18000/18462_hr-0.png",
+    "ecg": "ptbxl/records500/18000/18462_hr",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<image>\nAge: 46.0, Sex: Female, Height: N/A, Weight: N/A. Provide the specific SCP diagnostic subclasses."
+      },
+      {
+        "from": "gpt",
+        "value": "<answer>NST_, AFIB</answer>"
+      }
+    ]
+  },
+  {
+    "id": "2303",
+    "image": "ptb-xl-gen/records500/02000/02303_hr-0.png",
+    "ecg": "ptbxl/records500/02000/02303_hr",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<image>\nAge: 46.0, Sex: Male, Height: 178.0, Weight: 65.0. Provide the specific SCP diagnostic subclasses."
+      },
+      {
+        "from": "gpt",
+        "value": "<answer>NORM, SR</answer>"
+      }
+    ]
+  },
+  {
+    "id": "3066",
+    "image": "ptb-xl-gen/records500/03000/03066_hr-0.png",
+    "ecg": "ptbxl/records500/03000/03066_hr",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<image>\nAge: 59.0, Sex: Female, Height: 170.0, Weight: 77.0. Provide the specific SCP diagnostic subclasses."
+      },
+      {
+        "from": "gpt",
+        "value": "<answer>NT_, NST_, SR</answer>"
+      }
+    ]
+  },
+  {
+    "id": "13082",
+    "image": "ptb-xl-gen/records500/13000/13082_hr-0.png",
+    "ecg": "ptbxl/records500/13000/13082_hr",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<image>\nAge: 40.0, Sex: Male, Height: N/A, Weight: N/A. Provide the specific SCP diagnostic subclasses."
+      },
+      {
+        "from": "gpt",
+        "value": "<answer>1AVB, SR, IRBBB</answer>"
+      }
+    ]
+  },
+  {
+    "id": "8418",
+    "image": "ptb-xl-gen/records500/08000/08418_hr-0.png",
+    "ecg": "ptbxl/records500/08000/08418_hr",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<image>\nAge: 66.0, Sex: Female, Height: N/A, Weight: N/A. Provide the specific SCP diagnostic subclasses."
+      },
+      {
+        "from": "gpt",
+        "value": "<answer>ISCAL, IMI, ABQRS, SR</answer>"
+      }
+    ]
+  },
+  {
+    "id": "1248",
+    "image": "ptb-xl-gen/records500/01000/01248_hr-0.png",
+    "ecg": "ptbxl/records500/01000/01248_hr",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<image>\nAge: 54.0, Sex: Male, Height: N/A, Weight: 83.0. Provide the specific SCP diagnostic subclasses."
+      },
+      {
+        "from": "gpt",
+        "value": "<answer>AMI, ABQRS, SR</answer>"
+      }
+    ]
+  },
+  {
+    "id": "7503",
+    "image": "ptb-xl-gen/records500/07000/07503_hr-0.png",
+    "ecg": "ptbxl/records500/07000/07503_hr",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<image>\nAge: 55.0, Sex: Male, Height: N/A, Weight: N/A. Provide the specific SCP diagnostic subclasses."
+      },
+      {
+        "from": "gpt",
+        "value": "<answer>VCLVH, SBRAD, LVH</answer>"
+      }
+    ]
+  },
+  {
+    "id": "478",
+    "image": "ptb-xl-gen/records500/00000/00478_hr-0.png",
+    "ecg": "ptbxl/records500/00000/00478_hr",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<image>\nAge: 39.0, Sex: Male, Height: 188.0, Weight: 73.0. Provide the specific SCP diagnostic subclasses."
+      },
+      {
+        "from": "gpt",
+        "value": "<answer>SARRH, IRBBB, NORM</answer>"
+      }
+    ]
+  },
+  {
+    "id": "15016",
+    "image": "ptb-xl-gen/records500/15000/15016_hr-0.png",
+    "ecg": "ptbxl/records500/15000/15016_hr",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<image>\nAge: 35.0, Sex: Female, Height: 174.0, Weight: 80.0. Provide the specific SCP diagnostic subclasses."
+      },
+      {
+        "from": "gpt",
+        "value": "<answer>SR, NORM</answer>"
+      }
+    ]
+  },
+  {
+    "id": "13344",
+    "image": "ptb-xl-gen/records500/13000/13344_hr-0.png",
+    "ecg": "ptbxl/records500/13000/13344_hr",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<image>\nAge: 64.0, Sex: Female, Height: N/A, Weight: N/A. Provide the specific SCP diagnostic subclasses."
+      },
+      {
+        "from": "gpt",
+        "value": "<answer>NORM, SR</answer>"
+      }
+    ]
+  },
+  {
+    "id": "14356",
+    "image": "ptb-xl-gen/records500/14000/14356_hr-0.png",
+    "ecg": "ptbxl/records500/14000/14356_hr",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<image>\nAge: 33.0, Sex: Female, Height: N/A, Weight: N/A. Provide the specific SCP diagnostic subclasses."
+      },
+      {
+        "from": "gpt",
+        "value": "<answer>SR, NORM</answer>"
+      }
+    ]
+  },
+  {
+    "id": "20649",
+    "image": "ptb-xl-gen/records500/20000/20649_hr-0.png",
+    "ecg": "ptbxl/records500/20000/20649_hr",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<image>\nAge: 62.0, Sex: Female, Height: N/A, Weight: N/A. Provide the specific SCP diagnostic subclasses."
+      },
+      {
+        "from": "gpt",
+        "value": "<answer>NORM, SR</answer>"
+      }
+    ]
+  },
+  {
+    "id": "5215",
+    "image": "ptb-xl-gen/records500/05000/05215_hr-0.png",
+    "ecg": "ptbxl/records500/05000/05215_hr",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<image>\nAge: 47.0, Sex: Male, Height: N/A, Weight: N/A. Provide the specific SCP diagnostic subclasses."
+      },
+      {
+        "from": "gpt",
+        "value": "<answer>NORM, SR</answer>"
+      }
+    ]
+  },
+  {
+    "id": "21182",
+    "image": "ptb-xl-gen/records500/21000/21182_hr-0.png",
+    "ecg": "ptbxl/records500/21000/21182_hr",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<image>\nAge: 71.0, Sex: Female, Height: N/A, Weight: N/A. Provide the specific SCP diagnostic subclasses."
+      },
+      {
+        "from": "gpt",
+        "value": "<answer>1AVB, SR</answer>"
+      }
+    ]
+  },
+  {
+    "id": "2556",
+    "image": "ptb-xl-gen/records500/02000/02556_hr-0.png",
+    "ecg": "ptbxl/records500/02000/02556_hr",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<image>\nAge: 77.0, Sex: Male, Height: N/A, Weight: N/A. Provide the specific SCP diagnostic subclasses."
+      },
+      {
+        "from": "gpt",
+        "value": "<answer>SR, NDT</answer>"
+      }
+    ]
+  },
+  {
+    "id": "19423",
+    "image": "ptb-xl-gen/records500/19000/19423_hr-0.png",
+    "ecg": "ptbxl/records500/19000/19423_hr",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<image>\nAge: 61.0, Sex: Male, Height: N/A, Weight: N/A. Provide the specific SCP diagnostic subclasses."
+      },
+      {
+        "from": "gpt",
+        "value": "<answer>VCLVH, LVH, SR, ASMI, ABQRS</answer>"
+      }
+    ]
+  },
+  {
+    "id": "10092",
+    "image": "ptb-xl-gen/records500/10000/10092_hr-0.png",
+    "ecg": "ptbxl/records500/10000/10092_hr",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<image>\nAge: 71.0, Sex: Male, Height: 175.0, Weight: 80.0. Provide the specific SCP diagnostic subclasses."
+      },
+      {
+        "from": "gpt",
+        "value": "<answer>AFIB, CLBBB</answer>"
+      }
+    ]
+  },
+  {
+    "id": "9237",
+    "image": "ptb-xl-gen/records500/09000/09237_hr-0.png",
+    "ecg": "ptbxl/records500/09000/09237_hr",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<image>\nAge: 54.0, Sex: Female, Height: N/A, Weight: N/A. Provide the specific SCP diagnostic subclasses."
+      },
+      {
+        "from": "gpt",
+        "value": "<answer>SR, LAFB, RAO/RAE</answer>"
+      }
+    ]
+  },
+  {
+    "id": "14964",
+    "image": "ptb-xl-gen/records500/14000/14964_hr-0.png",
+    "ecg": "ptbxl/records500/14000/14964_hr",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<image>\nAge: 49.0, Sex: Male, Height: 180.0, Weight: 82.0. Provide the specific SCP diagnostic subclasses."
+      },
+      {
+        "from": "gpt",
+        "value": "<answer>SR, PAC, NDT, LAFB</answer>"
+      }
+    ]
+  },
+  {
+    "id": "17096",
+    "image": "ptb-xl-gen/records500/17000/17096_hr-0.png",
+    "ecg": "ptbxl/records500/17000/17096_hr",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<image>\nAge: 73.0, Sex: Male, Height: N/A, Weight: N/A. Provide the specific SCP diagnostic subclasses."
+      },
+      {
+        "from": "gpt",
+        "value": "<answer>AFLT, AFIB</answer>"
+      }
+    ]
+  },
+  {
+    "id": "10218",
+    "image": "ptb-xl-gen/records500/10000/10218_hr-0.png",
+    "ecg": "ptbxl/records500/10000/10218_hr",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<image>\nAge: 85.0, Sex: Female, Height: N/A, Weight: N/A. Provide the specific SCP diagnostic subclasses."
+      },
+      {
+        "from": "gpt",
+        "value": "<answer>1AVB, SR, LPFB, RVH</answer>"
+      }
+    ]
+  },
+  {
+    "id": "17018",
+    "image": "ptb-xl-gen/records500/17000/17018_hr-0.png",
+    "ecg": "ptbxl/records500/17000/17018_hr",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<image>\nAge: 22.0, Sex: Male, Height: N/A, Weight: N/A. Provide the specific SCP diagnostic subclasses."
+      },
+      {
+        "from": "gpt",
+        "value": "<answer>SR, NORM</answer>"
+      }
+    ]
+  },
+  {
+    "id": "4398",
+    "image": "ptb-xl-gen/records500/04000/04398_hr-0.png",
+    "ecg": "ptbxl/records500/04000/04398_hr",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<image>\nAge: 84.0, Sex: Female, Height: N/A, Weight: N/A. Provide the specific SCP diagnostic subclasses."
+      },
+      {
+        "from": "gpt",
+        "value": "<answer>LVH, BIGU, SR</answer>"
+      }
+    ]
+  },
+  {
+    "id": "17485",
+    "image": "ptb-xl-gen/records500/17000/17485_hr-0.png",
+    "ecg": "ptbxl/records500/17000/17485_hr",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<image>\nAge: 61.0, Sex: Female, Height: N/A, Weight: N/A. Provide the specific SCP diagnostic subclasses."
+      },
+      {
+        "from": "gpt",
+        "value": "<answer>NDT, SR</answer>"
+      }
+    ]
+  },
+  {
+    "id": "10165",
+    "image": "ptb-xl-gen/records500/10000/10165_hr-0.png",
+    "ecg": "ptbxl/records500/10000/10165_hr",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<image>\nAge: 41.0, Sex: Male, Height: 179.0, Weight: 130.0. Provide the specific SCP diagnostic subclasses."
+      },
+      {
+        "from": "gpt",
+        "value": "<answer>SR, QWAVE, IMI</answer>"
+      }
+    ]
+  },
+  {
+    "id": "14415",
+    "image": "ptb-xl-gen/records500/14000/14415_hr-0.png",
+    "ecg": "ptbxl/records500/14000/14415_hr",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<image>\nAge: 25.0, Sex: Female, Height: N/A, Weight: 58.0. Provide the specific SCP diagnostic subclasses."
+      },
+      {
+        "from": "gpt",
+        "value": "<answer>NORM, SARRH</answer>"
+      }
+    ]
+  },
+  {
+    "id": "17996",
+    "image": "ptb-xl-gen/records500/17000/17996_hr-0.png",
+    "ecg": "ptbxl/records500/17000/17996_hr",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<image>\nAge: 43.0, Sex: Female, Height: 167.0, Weight: 55.0. Provide the specific SCP diagnostic subclasses."
+      },
+      {
+        "from": "gpt",
+        "value": "<answer>SARRH, NORM</answer>"
+      }
+    ]
+  },
+  {
+    "id": "19800",
+    "image": "ptb-xl-gen/records500/19000/19800_hr-0.png",
+    "ecg": "ptbxl/records500/19000/19800_hr",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<image>\nAge: 66.0, Sex: Female, Height: N/A, Weight: N/A. Provide the specific SCP diagnostic subclasses."
+      },
+      {
+        "from": "gpt",
+        "value": "<answer>ISCLA, IMI, SR, ABQRS</answer>"
+      }
+    ]
+  },
+  {
+    "id": "3151",
+    "image": "ptb-xl-gen/records500/03000/03151_hr-0.png",
+    "ecg": "ptbxl/records500/03000/03151_hr",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<image>\nAge: 39.0, Sex: Female, Height: 158.0, Weight: 63.0. Provide the specific SCP diagnostic subclasses."
+      },
+      {
+        "from": "gpt",
+        "value": "<answer>NORM, PVC, SR</answer>"
+      }
+    ]
+  },
+  {
+    "id": "6954",
+    "image": "ptb-xl-gen/records500/06000/06954_hr-0.png",
+    "ecg": "ptbxl/records500/06000/06954_hr",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<image>\nAge: 46.0, Sex: Male, Height: 174.0, Weight: 97.0. Provide the specific SCP diagnostic subclasses."
+      },
+      {
+        "from": "gpt",
+        "value": "<answer>NORM, SR</answer>"
+      }
+    ]
+  },
+  {
+    "id": "16168",
+    "image": "ptb-xl-gen/records500/16000/16168_hr-0.png",
+    "ecg": "ptbxl/records500/16000/16168_hr",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<image>\nAge: 49.0, Sex: Male, Height: N/A, Weight: N/A. Provide the specific SCP diagnostic subclasses."
+      },
+      {
+        "from": "gpt",
+        "value": "<answer>LPFB, ILMI, ABQRS, SR</answer>"
+      }
+    ]
+  },
+  {
+    "id": "1899",
+    "image": "ptb-xl-gen/records500/01000/01899_hr-0.png",
+    "ecg": "ptbxl/records500/01000/01899_hr",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<image>\nAge: 50.0, Sex: Male, Height: 165.0, Weight: 93.0. Provide the specific SCP diagnostic subclasses."
+      },
+      {
+        "from": "gpt",
+        "value": "<answer>NORM, SR</answer>"
+      }
+    ]
+  },
+  {
+    "id": "19340",
+    "image": "ptb-xl-gen/records500/19000/19340_hr-0.png",
+    "ecg": "ptbxl/records500/19000/19340_hr",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<image>\nAge: 81.0, Sex: Male, Height: N/A, Weight: N/A. Provide the specific SCP diagnostic subclasses."
+      },
+      {
+        "from": "gpt",
+        "value": "<answer>SR, LVH, 1AVB, PVC, ISC_, ASMI</answer>"
+      }
+    ]
+  },
+  {
+    "id": "15558",
+    "image": "ptb-xl-gen/records500/15000/15558_hr-0.png",
+    "ecg": "ptbxl/records500/15000/15558_hr",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<image>\nAge: 59.0, Sex: Male, Height: N/A, Weight: N/A. Provide the specific SCP diagnostic subclasses."
+      },
+      {
+        "from": "gpt",
+        "value": "<answer>SARRH, IMI</answer>"
+      }
+    ]
+  },
+  {
+    "id": "19150",
+    "image": "ptb-xl-gen/records500/19000/19150_hr-0.png",
+    "ecg": "ptbxl/records500/19000/19150_hr",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<image>\nAge: 61.0, Sex: Male, Height: N/A, Weight: N/A. Provide the specific SCP diagnostic subclasses."
+      },
+      {
+        "from": "gpt",
+        "value": "<answer>ABQRS, SARRH, ASMI, PVC, IMI</answer>"
+      }
+    ]
+  },
+  {
+    "id": "21201",
+    "image": "ptb-xl-gen/records500/21000/21201_hr-0.png",
+    "ecg": "ptbxl/records500/21000/21201_hr",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<image>\nAge: 38.0, Sex: Female, Height: N/A, Weight: N/A. Provide the specific SCP diagnostic subclasses."
+      },
+      {
+        "from": "gpt",
+        "value": "<answer>SVARR, WPW</answer>"
+      }
+    ]
+  },
+  {
+    "id": "599",
+    "image": "ptb-xl-gen/records500/00000/00599_hr-0.png",
+    "ecg": "ptbxl/records500/00000/00599_hr",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<image>\nAge: 73.0, Sex: Female, Height: 165.0, Weight: 65.0. Provide the specific SCP diagnostic subclasses."
+      },
+      {
+        "from": "gpt",
+        "value": "<answer>SR, LPR, ASMI</answer>"
+      }
+    ]
+  },
+  {
+    "id": "18109",
+    "image": "ptb-xl-gen/records500/18000/18109_hr-0.png",
+    "ecg": "ptbxl/records500/18000/18109_hr",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<image>\nAge: 86.0, Sex: Female, Height: 170.0, Weight: 58.0. Provide the specific SCP diagnostic subclasses."
+      },
+      {
+        "from": "gpt",
+        "value": "<answer>AFIB, NORM</answer>"
+      }
+    ]
+  },
+  {
+    "id": "13873",
+    "image": "ptb-xl-gen/records500/13000/13873_hr-0.png",
+    "ecg": "ptbxl/records500/13000/13873_hr",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<image>\nAge: 66.0, Sex: Male, Height: N/A, Weight: N/A. Provide the specific SCP diagnostic subclasses."
+      },
+      {
+        "from": "gpt",
+        "value": "<answer>ISCLA, ASMI, LMI, SR</answer>"
+      }
+    ]
+  },
+  {
+    "id": "13201",
+    "image": "ptb-xl-gen/records500/13000/13201_hr-0.png",
+    "ecg": "ptbxl/records500/13000/13201_hr",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<image>\nAge: 68.0, Sex: Male, Height: N/A, Weight: N/A. Provide the specific SCP diagnostic subclasses."
+      },
+      {
+        "from": "gpt",
+        "value": "<answer>ISCAL, ABQRS, AFIB, IVCD</answer>"
+      }
+    ]
+  },
+  {
+    "id": "10890",
+    "image": "ptb-xl-gen/records500/10000/10890_hr-0.png",
+    "ecg": "ptbxl/records500/10000/10890_hr",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<image>\nAge: 61.0, Sex: Female, Height: N/A, Weight: N/A. Provide the specific SCP diagnostic subclasses."
+      },
+      {
+        "from": "gpt",
+        "value": "<answer>ABQRS, SR, ISCAL, ASMI</answer>"
+      }
+    ]
+  },
+  {
+    "id": "16101",
+    "image": "ptb-xl-gen/records500/16000/16101_hr-0.png",
+    "ecg": "ptbxl/records500/16000/16101_hr",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<image>\nAge: 68.0, Sex: Female, Height: N/A, Weight: N/A. Provide the specific SCP diagnostic subclasses."
+      },
+      {
+        "from": "gpt",
+        "value": "<answer>EL, SR</answer>"
+      }
+    ]
+  },
+  {
+    "id": "19162",
+    "image": "ptb-xl-gen/records500/19000/19162_hr-0.png",
+    "ecg": "ptbxl/records500/19000/19162_hr",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<image>\nAge: 54.0, Sex: Female, Height: N/A, Weight: N/A. Provide the specific SCP diagnostic subclasses."
+      },
+      {
+        "from": "gpt",
+        "value": "<answer>NORM, SVARR</answer>"
+      }
+    ]
+  },
+  {
+    "id": "16189",
+    "image": "ptb-xl-gen/records500/16000/16189_hr-0.png",
+    "ecg": "ptbxl/records500/16000/16189_hr",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<image>\nAge: 88.0, Sex: Female, Height: 160.0, Weight: 52.0. Provide the specific SCP diagnostic subclasses."
+      },
+      {
+        "from": "gpt",
+        "value": "<answer>CLBBB, SR, ISC_, LVH</answer>"
+      }
+    ]
+  },
+  {
+    "id": "15574",
+    "image": "ptb-xl-gen/records500/15000/15574_hr-0.png",
+    "ecg": "ptbxl/records500/15000/15574_hr",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<image>\nAge: 52.0, Sex: Female, Height: N/A, Weight: N/A. Provide the specific SCP diagnostic subclasses."
+      },
+      {
+        "from": "gpt",
+        "value": "<answer>NST_, AFIB</answer>"
+      }
+    ]
+  },
+  {
+    "id": "15141",
+    "image": "ptb-xl-gen/records500/15000/15141_hr-0.png",
+    "ecg": "ptbxl/records500/15000/15141_hr",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<image>\nAge: 55.0, Sex: Male, Height: N/A, Weight: N/A. Provide the specific SCP diagnostic subclasses."
+      },
+      {
+        "from": "gpt",
+        "value": "<answer>ABQRS, AFIB, ASMI</answer>"
+      }
+    ]
+  },
+  {
+    "id": "2490",
+    "image": "ptb-xl-gen/records500/02000/02490_hr-0.png",
+    "ecg": "ptbxl/records500/02000/02490_hr",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<image>\nAge: 61.0, Sex: Female, Height: 151.0, Weight: 51.0. Provide the specific SCP diagnostic subclasses."
+      },
+      {
+        "from": "gpt",
+        "value": "<answer>LPR, SR, NT_, NDT</answer>"
+      }
+    ]
+  },
+  {
+    "id": "3035",
+    "image": "ptb-xl-gen/records500/03000/03035_hr-0.png",
+    "ecg": "ptbxl/records500/03000/03035_hr",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<image>\nAge: 70.0, Sex: Female, Height: 163.0, Weight: 65.0. Provide the specific SCP diagnostic subclasses."
+      },
+      {
+        "from": "gpt",
+        "value": "<answer>IRBBB, SR, NORM</answer>"
+      }
+    ]
+  },
+  {
+    "id": "16516",
+    "image": "ptb-xl-gen/records500/16000/16516_hr-0.png",
+    "ecg": "ptbxl/records500/16000/16516_hr",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<image>\nAge: 69.0, Sex: Female, Height: 165.0, Weight: 67.0. Provide the specific SCP diagnostic subclasses."
+      },
+      {
+        "from": "gpt",
+        "value": "<answer>NORM, SR</answer>"
+      }
+    ]
+  },
+  {
+    "id": "7600",
+    "image": "ptb-xl-gen/records500/07000/07600_hr-0.png",
+    "ecg": "ptbxl/records500/07000/07600_hr",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<image>\nAge: 36.0, Sex: Male, Height: N/A, Weight: N/A. Provide the specific SCP diagnostic subclasses."
+      },
+      {
+        "from": "gpt",
+        "value": "<answer>ABQRS, ILMI, SR</answer>"
+      }
+    ]
+  },
+  {
+    "id": "1154",
+    "image": "ptb-xl-gen/records500/01000/01154_hr-0.png",
+    "ecg": "ptbxl/records500/01000/01154_hr",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<image>\nAge: 67.0, Sex: Male, Height: 175.0, Weight: 90.0. Provide the specific SCP diagnostic subclasses."
+      },
+      {
+        "from": "gpt",
+        "value": "<answer>LVH, SR, VCLVH, NT_</answer>"
+      }
+    ]
+  },
+  {
+    "id": "10554",
+    "image": "ptb-xl-gen/records500/10000/10554_hr-0.png",
+    "ecg": "ptbxl/records500/10000/10554_hr",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<image>\nAge: 64.0, Sex: Male, Height: N/A, Weight: N/A. Provide the specific SCP diagnostic subclasses."
+      },
+      {
+        "from": "gpt",
+        "value": "<answer>LAFB, ABQRS, SR, LMI</answer>"
+      }
+    ]
+  },
+  {
+    "id": "7715",
+    "image": "ptb-xl-gen/records500/07000/07715_hr-0.png",
+    "ecg": "ptbxl/records500/07000/07715_hr",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<image>\nAge: 63.0, Sex: Male, Height: N/A, Weight: N/A. Provide the specific SCP diagnostic subclasses."
+      },
+      {
+        "from": "gpt",
+        "value": "<answer>NORM, IRBBB, SR</answer>"
+      }
+    ]
+  },
+  {
+    "id": "6747",
+    "image": "ptb-xl-gen/records500/06000/06747_hr-0.png",
+    "ecg": "ptbxl/records500/06000/06747_hr",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<image>\nAge: 37.0, Sex: Female, Height: 159.0, Weight: 110.0. Provide the specific SCP diagnostic subclasses."
+      },
+      {
+        "from": "gpt",
+        "value": "<answer>SARRH, NDT, LOWT</answer>"
+      }
+    ]
+  },
+  {
+    "id": "3967",
+    "image": "ptb-xl-gen/records500/03000/03967_hr-0.png",
+    "ecg": "ptbxl/records500/03000/03967_hr",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<image>\nAge: 50.0, Sex: Male, Height: N/A, Weight: 80.0. Provide the specific SCP diagnostic subclasses."
+      },
+      {
+        "from": "gpt",
+        "value": "<answer>ABQRS, SR, ASMI</answer>"
+      }
+    ]
+  },
+  {
+    "id": "14627",
+    "image": "ptb-xl-gen/records500/14000/14627_hr-0.png",
+    "ecg": "ptbxl/records500/14000/14627_hr",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<image>\nAge: 39.0, Sex: Male, Height: N/A, Weight: 76.0. Provide the specific SCP diagnostic subclasses."
+      },
+      {
+        "from": "gpt",
+        "value": "<answer>IMI, SR, ABQRS</answer>"
+      }
+    ]
+  },
+  {
+    "id": "15462",
+    "image": "ptb-xl-gen/records500/15000/15462_hr-0.png",
+    "ecg": "ptbxl/records500/15000/15462_hr",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<image>\nAge: 54.0, Sex: Male, Height: N/A, Weight: N/A. Provide the specific SCP diagnostic subclasses."
+      },
+      {
+        "from": "gpt",
+        "value": "<answer>ABQRS, IMI, SR</answer>"
+      }
+    ]
+  },
+  {
+    "id": "4867",
+    "image": "ptb-xl-gen/records500/04000/04867_hr-0.png",
+    "ecg": "ptbxl/records500/04000/04867_hr",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<image>\nAge: 63.0, Sex: Male, Height: N/A, Weight: N/A. Provide the specific SCP diagnostic subclasses."
+      },
+      {
+        "from": "gpt",
+        "value": "<answer>NORM, SR</answer>"
+      }
+    ]
+  },
+  {
+    "id": "11887",
+    "image": "ptb-xl-gen/records500/11000/11887_hr-0.png",
+    "ecg": "ptbxl/records500/11000/11887_hr",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<image>\nAge: 83.0, Sex: Female, Height: N/A, Weight: N/A. Provide the specific SCP diagnostic subclasses."
+      },
+      {
+        "from": "gpt",
+        "value": "<answer>NORM, SR</answer>"
+      }
+    ]
+  },
+  {
+    "id": "10500",
+    "image": "ptb-xl-gen/records500/10000/10500_hr-0.png",
+    "ecg": "ptbxl/records500/10000/10500_hr",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<image>\nAge: 80.0, Sex: Male, Height: 175.0, Weight: 63.0. Provide the specific SCP diagnostic subclasses."
+      },
+      {
+        "from": "gpt",
+        "value": "<answer>AFIB, LAFB, STD_, IMI, ASMI</answer>"
+      }
+    ]
+  },
+  {
+    "id": "18996",
+    "image": "ptb-xl-gen/records500/18000/18996_hr-0.png",
+    "ecg": "ptbxl/records500/18000/18996_hr",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<image>\nAge: 37.0, Sex: Male, Height: N/A, Weight: N/A. Provide the specific SCP diagnostic subclasses."
+      },
+      {
+        "from": "gpt",
+        "value": "<answer>SBRAD, LVH, ISC_</answer>"
+      }
+    ]
+  },
+  {
+    "id": "6957",
+    "image": "ptb-xl-gen/records500/06000/06957_hr-0.png",
+    "ecg": "ptbxl/records500/06000/06957_hr",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<image>\nAge: 66.0, Sex: Female, Height: N/A, Weight: N/A. Provide the specific SCP diagnostic subclasses."
+      },
+      {
+        "from": "gpt",
+        "value": "<answer>LVH, SR, ABQRS, IMI</answer>"
+      }
+    ]
+  },
+  {
+    "id": "10463",
+    "image": "ptb-xl-gen/records500/10000/10463_hr-0.png",
+    "ecg": "ptbxl/records500/10000/10463_hr",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<image>\nAge: 59.0, Sex: Female, Height: N/A, Weight: N/A. Provide the specific SCP diagnostic subclasses."
+      },
+      {
+        "from": "gpt",
+        "value": "<answer>AFIB, IMI, LVH</answer>"
+      }
+    ]
+  },
+  {
+    "id": "601",
+    "image": "ptb-xl-gen/records500/00000/00601_hr-0.png",
+    "ecg": "ptbxl/records500/00000/00601_hr",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<image>\nAge: 77.0, Sex: Female, Height: 168.0, Weight: 58.0. Provide the specific SCP diagnostic subclasses."
+      },
+      {
+        "from": "gpt",
+        "value": "<answer>SR, IMI, NT_, QWAVE</answer>"
+      }
+    ]
+  },
+  {
+    "id": "7905",
+    "image": "ptb-xl-gen/records500/07000/07905_hr-0.png",
+    "ecg": "ptbxl/records500/07000/07905_hr",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<image>\nAge: 31.0, Sex: Male, Height: N/A, Weight: 70.0. Provide the specific SCP diagnostic subclasses."
+      },
+      {
+        "from": "gpt",
+        "value": "<answer>NORM, SR</answer>"
+      }
+    ]
+  },
+  {
+    "id": "19093",
+    "image": "ptb-xl-gen/records500/19000/19093_hr-0.png",
+    "ecg": "ptbxl/records500/19000/19093_hr",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<image>\nAge: 63.0, Sex: Female, Height: N/A, Weight: N/A. Provide the specific SCP diagnostic subclasses."
+      },
+      {
+        "from": "gpt",
+        "value": "<answer>PACE</answer>"
+      }
+    ]
+  },
+  {
+    "id": "19616",
+    "image": "ptb-xl-gen/records500/19000/19616_hr-0.png",
+    "ecg": "ptbxl/records500/19000/19616_hr",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<image>\nAge: 60.0, Sex: Male, Height: N/A, Weight: N/A. Provide the specific SCP diagnostic subclasses."
+      },
+      {
+        "from": "gpt",
+        "value": "<answer>SARRH, NORM, PVC</answer>"
+      }
+    ]
+  },
+  {
+    "id": "5364",
+    "image": "ptb-xl-gen/records500/05000/05364_hr-0.png",
+    "ecg": "ptbxl/records500/05000/05364_hr",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<image>\nAge: 42.0, Sex: Male, Height: N/A, Weight: N/A. Provide the specific SCP diagnostic subclasses."
+      },
+      {
+        "from": "gpt",
+        "value": "<answer>NDT, SR</answer>"
+      }
+    ]
+  },
+  {
+    "id": "2122",
+    "image": "ptb-xl-gen/records500/02000/02122_hr-0.png",
+    "ecg": "ptbxl/records500/02000/02122_hr",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<image>\nAge: 65.0, Sex: Female, Height: 164.0, Weight: 80.0. Provide the specific SCP diagnostic subclasses."
+      },
+      {
+        "from": "gpt",
+        "value": "<answer>NORM, SR</answer>"
+      }
+    ]
+  },
+  {
+    "id": "10569",
+    "image": "ptb-xl-gen/records500/10000/10569_hr-0.png",
+    "ecg": "ptbxl/records500/10000/10569_hr",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<image>\nAge: 73.0, Sex: Male, Height: N/A, Weight: N/A. Provide the specific SCP diagnostic subclasses."
+      },
+      {
+        "from": "gpt",
+        "value": "<answer>SR, LAFB</answer>"
+      }
+    ]
+  },
+  {
+    "id": "15655",
+    "image": "ptb-xl-gen/records500/15000/15655_hr-0.png",
+    "ecg": "ptbxl/records500/15000/15655_hr",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<image>\nAge: 81.0, Sex: Male, Height: 163.0, Weight: 57.0. Provide the specific SCP diagnostic subclasses."
+      },
+      {
+        "from": "gpt",
+        "value": "<answer>SR, NORM</answer>"
+      }
+    ]
+  },
+  {
+    "id": "9590",
+    "image": "ptb-xl-gen/records500/09000/09590_hr-0.png",
+    "ecg": "ptbxl/records500/09000/09590_hr",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<image>\nAge: 52.0, Sex: Male, Height: N/A, Weight: 82.0. Provide the specific SCP diagnostic subclasses."
+      },
+      {
+        "from": "gpt",
+        "value": "<answer>AMI, ABQRS, STACH</answer>"
+      }
+    ]
+  },
+  {
+    "id": "20409",
+    "image": "ptb-xl-gen/records500/20000/20409_hr-0.png",
+    "ecg": "ptbxl/records500/20000/20409_hr",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<image>\nAge: 71.0, Sex: Female, Height: N/A, Weight: N/A. Provide the specific SCP diagnostic subclasses."
+      },
+      {
+        "from": "gpt",
+        "value": "<answer>ISCAL, SR, ISCIN, LVH</answer>"
+      }
+    ]
+  },
+  {
+    "id": "6431",
+    "image": "ptb-xl-gen/records500/06000/06431_hr-0.png",
+    "ecg": "ptbxl/records500/06000/06431_hr",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<image>\nAge: 53.0, Sex: Male, Height: N/A, Weight: 78.0. Provide the specific SCP diagnostic subclasses."
+      },
+      {
+        "from": "gpt",
+        "value": "<answer>SR, NORM, HVOLT</answer>"
+      }
+    ]
+  },
+  {
+    "id": "13761",
+    "image": "ptb-xl-gen/records500/13000/13761_hr-0.png",
+    "ecg": "ptbxl/records500/13000/13761_hr",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<image>\nAge: 64.0, Sex: Male, Height: N/A, Weight: N/A. Provide the specific SCP diagnostic subclasses."
+      },
+      {
+        "from": "gpt",
+        "value": "<answer>SR, NORM</answer>"
+      }
+    ]
+  },
+  {
+    "id": "17380",
+    "image": "ptb-xl-gen/records500/17000/17380_hr-0.png",
+    "ecg": "ptbxl/records500/17000/17380_hr",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<image>\nAge: 47.0, Sex: Male, Height: N/A, Weight: N/A. Provide the specific SCP diagnostic subclasses."
+      },
+      {
+        "from": "gpt",
+        "value": "<answer>NORM, SR</answer>"
+      }
+    ]
+  },
+  {
+    "id": "15064",
+    "image": "ptb-xl-gen/records500/15000/15064_hr-0.png",
+    "ecg": "ptbxl/records500/15000/15064_hr",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<image>\nAge: 81.0, Sex: Male, Height: N/A, Weight: N/A. Provide the specific SCP diagnostic subclasses."
+      },
+      {
+        "from": "gpt",
+        "value": "<answer>SR, IVCD, 1AVB, PVC, ISCAL</answer>"
+      }
+    ]
+  },
+  {
+    "id": "8078",
+    "image": "ptb-xl-gen/records500/08000/08078_hr-0.png",
+    "ecg": "ptbxl/records500/08000/08078_hr",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<image>\nAge: 58.0, Sex: Male, Height: 168.0, Weight: 74.0. Provide the specific SCP diagnostic subclasses."
+      },
+      {
+        "from": "gpt",
+        "value": "<answer>SR, NORM</answer>"
+      }
+    ]
+  },
+  {
+    "id": "7528",
+    "image": "ptb-xl-gen/records500/07000/07528_hr-0.png",
+    "ecg": "ptbxl/records500/07000/07528_hr",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<image>\nAge: 52.0, Sex: Male, Height: N/A, Weight: N/A. Provide the specific SCP diagnostic subclasses."
+      },
+      {
+        "from": "gpt",
+        "value": "<answer>IVCD, SBRAD</answer>"
+      }
+    ]
+  },
+  {
+    "id": "21692",
+    "image": "ptb-xl-gen/records500/21000/21692_hr-0.png",
+    "ecg": "ptbxl/records500/21000/21692_hr",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<image>\nAge: 74.0, Sex: Female, Height: N/A, Weight: N/A. Provide the specific SCP diagnostic subclasses."
+      },
+      {
+        "from": "gpt",
+        "value": "<answer>LVH, ABQRS, SR, ISC_</answer>"
+      }
+    ]
+  },
+  {
+    "id": "3908",
+    "image": "ptb-xl-gen/records500/03000/03908_hr-0.png",
+    "ecg": "ptbxl/records500/03000/03908_hr",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<image>\nAge: 55.0, Sex: Male, Height: N/A, Weight: N/A. Provide the specific SCP diagnostic subclasses."
+      },
+      {
+        "from": "gpt",
+        "value": "<answer>ASMI, SR</answer>"
+      }
+    ]
+  },
+  {
+    "id": "13538",
+    "image": "ptb-xl-gen/records500/13000/13538_hr-0.png",
+    "ecg": "ptbxl/records500/13000/13538_hr",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<image>\nAge: 67.0, Sex: Female, Height: N/A, Weight: N/A. Provide the specific SCP diagnostic subclasses."
+      },
+      {
+        "from": "gpt",
+        "value": "<answer>LVH, SR, VCLVH, ISC_</answer>"
+      }
+    ]
+  },
+  {
+    "id": "7977",
+    "image": "ptb-xl-gen/records500/07000/07977_hr-0.png",
+    "ecg": "ptbxl/records500/07000/07977_hr",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<image>\nAge: 74.0, Sex: Male, Height: N/A, Weight: N/A. Provide the specific SCP diagnostic subclasses."
+      },
+      {
+        "from": "gpt",
+        "value": "<answer>LVH, ASMI, STD_, AFIB, IVCD, PVC, ISC_</answer>"
+      }
+    ]
+  },
+  {
+    "id": "21048",
+    "image": "ptb-xl-gen/records500/21000/21048_hr-0.png",
+    "ecg": "ptbxl/records500/21000/21048_hr",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<image>\nAge: 56.0, Sex: Female, Height: N/A, Weight: N/A. Provide the specific SCP diagnostic subclasses."
+      },
+      {
+        "from": "gpt",
+        "value": "<answer>NST_, LAFB, AFIB, IRBBB</answer>"
+      }
+    ]
+  },
+  {
+    "id": "988",
+    "image": "ptb-xl-gen/records500/00000/00988_hr-0.png",
+    "ecg": "ptbxl/records500/00000/00988_hr",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<image>\nAge: 43.0, Sex: Male, Height: 179.0, Weight: 100.0. Provide the specific SCP diagnostic subclasses."
+      },
+      {
+        "from": "gpt",
+        "value": "<answer>SR, NORM</answer>"
+      }
+    ]
+  },
+  {
+    "id": "20371",
+    "image": "ptb-xl-gen/records500/20000/20371_hr-0.png",
+    "ecg": "ptbxl/records500/20000/20371_hr",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<image>\nAge: 35.0, Sex: Male, Height: N/A, Weight: N/A. Provide the specific SCP diagnostic subclasses."
+      },
+      {
+        "from": "gpt",
+        "value": "<answer>ABQRS, ASMI, SR</answer>"
+      }
+    ]
+  },
+  {
+    "id": "2153",
+    "image": "ptb-xl-gen/records500/02000/02153_hr-0.png",
+    "ecg": "ptbxl/records500/02000/02153_hr",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<image>\nAge: 88.0, Sex: Male, Height: N/A, Weight: N/A. Provide the specific SCP diagnostic subclasses."
+      },
+      {
+        "from": "gpt",
+        "value": "<answer>AFIB, LAFB</answer>"
+      }
+    ]
+  },
+  {
+    "id": "4428",
+    "image": "ptb-xl-gen/records500/04000/04428_hr-0.png",
+    "ecg": "ptbxl/records500/04000/04428_hr",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<image>\nAge: 52.0, Sex: Female, Height: N/A, Weight: N/A. Provide the specific SCP diagnostic subclasses."
+      },
+      {
+        "from": "gpt",
+        "value": "<answer>SR, NORM</answer>"
+      }
+    ]
+  },
+  {
+    "id": "21549",
+    "image": "ptb-xl-gen/records500/21000/21549_hr-0.png",
+    "ecg": "ptbxl/records500/21000/21549_hr",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<image>\nAge: 43.0, Sex: Female, Height: N/A, Weight: N/A. Provide the specific SCP diagnostic subclasses."
+      },
+      {
+        "from": "gpt",
+        "value": "<answer>NORM, SR</answer>"
+      }
+    ]
+  },
+  {
+    "id": "16448",
+    "image": "ptb-xl-gen/records500/16000/16448_hr-0.png",
+    "ecg": "ptbxl/records500/16000/16448_hr",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<image>\nAge: 65.0, Sex: Male, Height: N/A, Weight: N/A. Provide the specific SCP diagnostic subclasses."
+      },
+      {
+        "from": "gpt",
+        "value": "<answer>AFIB, NST_, IMI, ABQRS</answer>"
+      }
+    ]
+  },
+  {
+    "id": "6084",
+    "image": "ptb-xl-gen/records500/06000/06084_hr-0.png",
+    "ecg": "ptbxl/records500/06000/06084_hr",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<image>\nAge: 52.0, Sex: Female, Height: 150.0, Weight: 70.0. Provide the specific SCP diagnostic subclasses."
+      },
+      {
+        "from": "gpt",
+        "value": "<answer>SR, NDT, NT_</answer>"
+      }
+    ]
+  },
+  {
+    "id": "10765",
+    "image": "ptb-xl-gen/records500/10000/10765_hr-0.png",
+    "ecg": "ptbxl/records500/10000/10765_hr",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<image>\nAge: 64.0, Sex: Female, Height: 150.0, Weight: 45.0. Provide the specific SCP diagnostic subclasses."
+      },
+      {
+        "from": "gpt",
+        "value": "<answer>LPFB, STACH, RAO/RAE, RVH</answer>"
+      }
+    ]
+  },
+  {
+    "id": "6906",
+    "image": "ptb-xl-gen/records500/06000/06906_hr-0.png",
+    "ecg": "ptbxl/records500/06000/06906_hr",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<image>\nAge: 60.0, Sex: Male, Height: N/A, Weight: N/A. Provide the specific SCP diagnostic subclasses."
+      },
+      {
+        "from": "gpt",
+        "value": "<answer>ABQRS, LAFB, SR, ASMI</answer>"
+      }
+    ]
+  },
+  {
+    "id": "5208",
+    "image": "ptb-xl-gen/records500/05000/05208_hr-0.png",
+    "ecg": "ptbxl/records500/05000/05208_hr",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<image>\nAge: 72.0, Sex: Male, Height: N/A, Weight: N/A. Provide the specific SCP diagnostic subclasses."
+      },
+      {
+        "from": "gpt",
+        "value": "<answer>LVH, AFIB</answer>"
+      }
+    ]
+  },
+  {
+    "id": "12466",
+    "image": "ptb-xl-gen/records500/12000/12466_hr-0.png",
+    "ecg": "ptbxl/records500/12000/12466_hr",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<image>\nAge: 41.0, Sex: Female, Height: N/A, Weight: 63.0. Provide the specific SCP diagnostic subclasses."
+      },
+      {
+        "from": "gpt",
+        "value": "<answer>NORM, SR</answer>"
+      }
+    ]
+  },
+  {
+    "id": "13820",
+    "image": "ptb-xl-gen/records500/13000/13820_hr-0.png",
+    "ecg": "ptbxl/records500/13000/13820_hr",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<image>\nAge: 81.0, Sex: Female, Height: N/A, Weight: N/A. Provide the specific SCP diagnostic subclasses."
+      },
+      {
+        "from": "gpt",
+        "value": "<answer>SR, ABQRS, CLBBB</answer>"
+      }
+    ]
+  },
+  {
+    "id": "1592",
+    "image": "ptb-xl-gen/records500/01000/01592_hr-0.png",
+    "ecg": "ptbxl/records500/01000/01592_hr",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<image>\nAge: 65.0, Sex: Male, Height: 180.0, Weight: 77.0. Provide the specific SCP diagnostic subclasses."
+      },
+      {
+        "from": "gpt",
+        "value": "<answer>NDT, IMI, SR</answer>"
+      }
+    ]
+  },
+  {
+    "id": "7765",
+    "image": "ptb-xl-gen/records500/07000/07765_hr-0.png",
+    "ecg": "ptbxl/records500/07000/07765_hr",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<image>\nAge: 58.0, Sex: Female, Height: N/A, Weight: 86.0. Provide the specific SCP diagnostic subclasses."
+      },
+      {
+        "from": "gpt",
+        "value": "<answer>NORM, SR</answer>"
+      }
+    ]
+  },
+  {
+    "id": "15719",
+    "image": "ptb-xl-gen/records500/15000/15719_hr-0.png",
+    "ecg": "ptbxl/records500/15000/15719_hr",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<image>\nAge: 51.0, Sex: Female, Height: N/A, Weight: N/A. Provide the specific SCP diagnostic subclasses."
+      },
+      {
+        "from": "gpt",
+        "value": "<answer>NORM, SR</answer>"
+      }
+    ]
+  },
+  {
+    "id": "4543",
+    "image": "ptb-xl-gen/records500/04000/04543_hr-0.png",
+    "ecg": "ptbxl/records500/04000/04543_hr",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<image>\nAge: 23.0, Sex: Male, Height: 172.0, Weight: 83.0. Provide the specific SCP diagnostic subclasses."
+      },
+      {
+        "from": "gpt",
+        "value": "<answer>NORM, SR</answer>"
+      }
+    ]
+  },
+  {
+    "id": "2767",
+    "image": "ptb-xl-gen/records500/02000/02767_hr-0.png",
+    "ecg": "ptbxl/records500/02000/02767_hr",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<image>\nAge: 26.0, Sex: Male, Height: 178.0, Weight: 90.0. Provide the specific SCP diagnostic subclasses."
+      },
+      {
+        "from": "gpt",
+        "value": "<answer>IRBBB, NORM, SR</answer>"
+      }
+    ]
+  },
+  {
+    "id": "4276",
+    "image": "ptb-xl-gen/records500/04000/04276_hr-0.png",
+    "ecg": "ptbxl/records500/04000/04276_hr",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<image>\nAge: 59.0, Sex: Male, Height: N/A, Weight: N/A. Provide the specific SCP diagnostic subclasses."
+      },
+      {
+        "from": "gpt",
+        "value": "<answer>IMI, SR</answer>"
+      }
+    ]
+  },
+  {
+    "id": "6806",
+    "image": "ptb-xl-gen/records500/06000/06806_hr-0.png",
+    "ecg": "ptbxl/records500/06000/06806_hr",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<image>\nAge: 67.0, Sex: Female, Height: N/A, Weight: N/A. Provide the specific SCP diagnostic subclasses."
+      },
+      {
+        "from": "gpt",
+        "value": "<answer>ISC_, SR, LVH</answer>"
+      }
+    ]
+  },
+  {
+    "id": "6733",
+    "image": "ptb-xl-gen/records500/06000/06733_hr-0.png",
+    "ecg": "ptbxl/records500/06000/06733_hr",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<image>\nAge: 72.0, Sex: Male, Height: N/A, Weight: N/A. Provide the specific SCP diagnostic subclasses."
+      },
+      {
+        "from": "gpt",
+        "value": "<answer>NORM</answer>"
+      }
+    ]
+  },
+  {
+    "id": "8529",
+    "image": "ptb-xl-gen/records500/08000/08529_hr-0.png",
+    "ecg": "ptbxl/records500/08000/08529_hr",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<image>\nAge: 77.0, Sex: Female, Height: 172.0, Weight: 78.0. Provide the specific SCP diagnostic subclasses."
+      },
+      {
+        "from": "gpt",
+        "value": "<answer>NDT, SR</answer>"
+      }
+    ]
+  },
+  {
+    "id": "17141",
+    "image": "ptb-xl-gen/records500/17000/17141_hr-0.png",
+    "ecg": "ptbxl/records500/17000/17141_hr",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<image>\nAge: 76.0, Sex: Male, Height: N/A, Weight: N/A. Provide the specific SCP diagnostic subclasses."
+      },
+      {
+        "from": "gpt",
+        "value": "<answer>SR, NDT</answer>"
+      }
+    ]
+  },
+  {
+    "id": "20875",
+    "image": "ptb-xl-gen/records500/20000/20875_hr-0.png",
+    "ecg": "ptbxl/records500/20000/20875_hr",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<image>\nAge: 69.0, Sex: Female, Height: N/A, Weight: N/A. Provide the specific SCP diagnostic subclasses."
+      },
+      {
+        "from": "gpt",
+        "value": "<answer>NORM, SR</answer>"
+      }
+    ]
+  },
+  {
+    "id": "18288",
+    "image": "ptb-xl-gen/records500/18000/18288_hr-0.png",
+    "ecg": "ptbxl/records500/18000/18288_hr",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<image>\nAge: 29.0, Sex: Female, Height: N/A, Weight: N/A. Provide the specific SCP diagnostic subclasses."
+      },
+      {
+        "from": "gpt",
+        "value": "<answer>NORM, IRBBB, SR</answer>"
+      }
+    ]
+  },
+  {
+    "id": "19305",
+    "image": "ptb-xl-gen/records500/19000/19305_hr-0.png",
+    "ecg": "ptbxl/records500/19000/19305_hr",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<image>\nAge: 73.0, Sex: Male, Height: N/A, Weight: N/A. Provide the specific SCP diagnostic subclasses."
+      },
+      {
+        "from": "gpt",
+        "value": "<answer>AFIB, LAFB</answer>"
+      }
+    ]
+  },
+  {
+    "id": "6015",
+    "image": "ptb-xl-gen/records500/06000/06015_hr-0.png",
+    "ecg": "ptbxl/records500/06000/06015_hr",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<image>\nAge: 84.0, Sex: Female, Height: 165.0, Weight: 70.0. Provide the specific SCP diagnostic subclasses."
+      },
+      {
+        "from": "gpt",
+        "value": "<answer>ASMI, IMI, SR, STD_, INVT, ISCAL</answer>"
+      }
+    ]
+  },
+  {
+    "id": "1841",
+    "image": "ptb-xl-gen/records500/01000/01841_hr-0.png",
+    "ecg": "ptbxl/records500/01000/01841_hr",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<image>\nAge: 64.0, Sex: Female, Height: 160.0, Weight: 66.0. Provide the specific SCP diagnostic subclasses."
+      },
+      {
+        "from": "gpt",
+        "value": "<answer>NORM, SR</answer>"
+      }
+    ]
+  },
+  {
+    "id": "13145",
+    "image": "ptb-xl-gen/records500/13000/13145_hr-0.png",
+    "ecg": "ptbxl/records500/13000/13145_hr",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<image>\nAge: 67.0, Sex: Female, Height: N/A, Weight: N/A. Provide the specific SCP diagnostic subclasses."
+      },
+      {
+        "from": "gpt",
+        "value": "<answer>NORM, SR</answer>"
+      }
+    ]
+  },
+  {
+    "id": "2825",
+    "image": "ptb-xl-gen/records500/02000/02825_hr-0.png",
+    "ecg": "ptbxl/records500/02000/02825_hr",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<image>\nAge: 75.0, Sex: Female, Height: 170.0, Weight: 83.0. Provide the specific SCP diagnostic subclasses."
+      },
+      {
+        "from": "gpt",
+        "value": "<answer>AFIB, LOWT, ISCAL, ISCAS, STD_</answer>"
+      }
+    ]
+  },
+  {
+    "id": "16342",
+    "image": "ptb-xl-gen/records500/16000/16342_hr-0.png",
+    "ecg": "ptbxl/records500/16000/16342_hr",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<image>\nAge: 79.0, Sex: Female, Height: 151.0, Weight: 60.0. Provide the specific SCP diagnostic subclasses."
+      },
+      {
+        "from": "gpt",
+        "value": "<answer>PVC, SR, LPR, ASMI, LAFB, ISCAL</answer>"
+      }
+    ]
+  },
+  {
+    "id": "13279",
+    "image": "ptb-xl-gen/records500/13000/13279_hr-0.png",
+    "ecg": "ptbxl/records500/13000/13279_hr",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<image>\nAge: 66.0, Sex: Female, Height: N/A, Weight: N/A. Provide the specific SCP diagnostic subclasses."
+      },
+      {
+        "from": "gpt",
+        "value": "<answer>NORM, SR</answer>"
+      }
+    ]
+  },
+  {
+    "id": "11416",
+    "image": "ptb-xl-gen/records500/11000/11416_hr-0.png",
+    "ecg": "ptbxl/records500/11000/11416_hr",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<image>\nAge: 47.0, Sex: Male, Height: N/A, Weight: 82.0. Provide the specific SCP diagnostic subclasses."
+      },
+      {
+        "from": "gpt",
+        "value": "<answer>NORM, SR</answer>"
+      }
+    ]
+  },
+  {
+    "id": "9690",
+    "image": "ptb-xl-gen/records500/09000/09690_hr-0.png",
+    "ecg": "ptbxl/records500/09000/09690_hr",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<image>\nAge: 67.0, Sex: Male, Height: N/A, Weight: N/A. Provide the specific SCP diagnostic subclasses."
+      },
+      {
+        "from": "gpt",
+        "value": "<answer>SR, IMI, CRBBB</answer>"
+      }
+    ]
+  },
+  {
+    "id": "4085",
+    "image": "ptb-xl-gen/records500/04000/04085_hr-0.png",
+    "ecg": "ptbxl/records500/04000/04085_hr",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<image>\nAge: 80.0, Sex: Male, Height: 165.0, Weight: 61.0. Provide the specific SCP diagnostic subclasses."
+      },
+      {
+        "from": "gpt",
+        "value": "<answer>SR, ISCIL, LOWT, STD_</answer>"
+      }
+    ]
+  },
+  {
+    "id": "10138",
+    "image": "ptb-xl-gen/records500/10000/10138_hr-0.png",
+    "ecg": "ptbxl/records500/10000/10138_hr",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<image>\nAge: 85.0, Sex: Male, Height: 182.0, Weight: 78.0. Provide the specific SCP diagnostic subclasses."
+      },
+      {
+        "from": "gpt",
+        "value": "<answer>NT_, VCLVH, SR, LVH, NDT</answer>"
+      }
+    ]
+  },
+  {
+    "id": "16326",
+    "image": "ptb-xl-gen/records500/16000/16326_hr-0.png",
+    "ecg": "ptbxl/records500/16000/16326_hr",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<image>\nAge: 61.0, Sex: Male, Height: N/A, Weight: N/A. Provide the specific SCP diagnostic subclasses."
+      },
+      {
+        "from": "gpt",
+        "value": "<answer>ASMI, SR</answer>"
+      }
+    ]
+  },
+  {
+    "id": "20913",
+    "image": "ptb-xl-gen/records500/20000/20913_hr-0.png",
+    "ecg": "ptbxl/records500/20000/20913_hr",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<image>\nAge: 56.0, Sex: Male, Height: N/A, Weight: N/A. Provide the specific SCP diagnostic subclasses."
+      },
+      {
+        "from": "gpt",
+        "value": "<answer>NORM, SR</answer>"
+      }
+    ]
+  },
+  {
+    "id": "10699",
+    "image": "ptb-xl-gen/records500/10000/10699_hr-0.png",
+    "ecg": "ptbxl/records500/10000/10699_hr",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<image>\nAge: 48.0, Sex: Female, Height: 155.0, Weight: 53.0. Provide the specific SCP diagnostic subclasses."
+      },
+      {
+        "from": "gpt",
+        "value": "<answer>NORM, SR</answer>"
+      }
+    ]
+  },
+  {
+    "id": "713",
+    "image": "ptb-xl-gen/records500/00000/00713_hr-0.png",
+    "ecg": "ptbxl/records500/00000/00713_hr",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<image>\nAge: 78.0, Sex: Male, Height: 158.0, Weight: 65.0. Provide the specific SCP diagnostic subclasses."
+      },
+      {
+        "from": "gpt",
+        "value": "<answer>ASMI, ISC_, PVC, LAO/LAE, LPR, LVH, SR, STD_</answer>"
+      }
+    ]
+  },
+  {
+    "id": "12976",
+    "image": "ptb-xl-gen/records500/12000/12976_hr-0.png",
+    "ecg": "ptbxl/records500/12000/12976_hr",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<image>\nAge: 48.0, Sex: Male, Height: N/A, Weight: N/A. Provide the specific SCP diagnostic subclasses."
+      },
+      {
+        "from": "gpt",
+        "value": "<answer>IMI, ASMI, ABQRS, SR</answer>"
+      }
+    ]
+  },
+  {
+    "id": "4067",
+    "image": "ptb-xl-gen/records500/04000/04067_hr-0.png",
+    "ecg": "ptbxl/records500/04000/04067_hr",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<image>\nAge: 71.0, Sex: Female, Height: 164.0, Weight: 60.0. Provide the specific SCP diagnostic subclasses."
+      },
+      {
+        "from": "gpt",
+        "value": "<answer>NORM, SR</answer>"
+      }
+    ]
+  },
+  {
+    "id": "12650",
+    "image": "ptb-xl-gen/records500/12000/12650_hr-0.png",
+    "ecg": "ptbxl/records500/12000/12650_hr",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<image>\nAge: 63.0, Sex: Female, Height: 152.0, Weight: 61.0. Provide the specific SCP diagnostic subclasses."
+      },
+      {
+        "from": "gpt",
+        "value": "<answer>EL, SR, NDT</answer>"
+      }
+    ]
+  },
+  {
+    "id": "1637",
+    "image": "ptb-xl-gen/records500/01000/01637_hr-0.png",
+    "ecg": "ptbxl/records500/01000/01637_hr",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<image>\nAge: 81.0, Sex: Female, Height: 168.0, Weight: 70.0. Provide the specific SCP diagnostic subclasses."
+      },
+      {
+        "from": "gpt",
+        "value": "<answer>SR, NORM</answer>"
+      }
+    ]
+  },
+  {
+    "id": "2446",
+    "image": "ptb-xl-gen/records500/02000/02446_hr-0.png",
+    "ecg": "ptbxl/records500/02000/02446_hr",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<image>\nAge: 23.0, Sex: Male, Height: N/A, Weight: 93.0. Provide the specific SCP diagnostic subclasses."
+      },
+      {
+        "from": "gpt",
+        "value": "<answer>ASMI, ABQRS, ALMI, AFIB</answer>"
+      }
+    ]
+  },
+  {
+    "id": "5459",
+    "image": "ptb-xl-gen/records500/05000/05459_hr-0.png",
+    "ecg": "ptbxl/records500/05000/05459_hr",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<image>\nAge: 39.0, Sex: Male, Height: N/A, Weight: N/A. Provide the specific SCP diagnostic subclasses."
+      },
+      {
+        "from": "gpt",
+        "value": "<answer>STE_, SARRH, NORM</answer>"
+      }
+    ]
+  },
+  {
+    "id": "19683",
+    "image": "ptb-xl-gen/records500/19000/19683_hr-0.png",
+    "ecg": "ptbxl/records500/19000/19683_hr",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<image>\nAge: 58.0, Sex: Male, Height: N/A, Weight: N/A. Provide the specific SCP diagnostic subclasses."
+      },
+      {
+        "from": "gpt",
+        "value": "<answer>ABQRS, ASMI, SR, LAFB</answer>"
+      }
+    ]
+  },
+  {
+    "id": "18191",
+    "image": "ptb-xl-gen/records500/18000/18191_hr-0.png",
+    "ecg": "ptbxl/records500/18000/18191_hr",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<image>\nAge: 69.0, Sex: Female, Height: N/A, Weight: N/A. Provide the specific SCP diagnostic subclasses."
+      },
+      {
+        "from": "gpt",
+        "value": "<answer>NORM, ABQRS, LVOLT, SR, TAB_</answer>"
+      }
+    ]
+  },
+  {
+    "id": "9355",
+    "image": "ptb-xl-gen/records500/09000/09355_hr-0.png",
+    "ecg": "ptbxl/records500/09000/09355_hr",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<image>\nAge: 19.0, Sex: Male, Height: N/A, Weight: 61.0. Provide the specific SCP diagnostic subclasses."
+      },
+      {
+        "from": "gpt",
+        "value": "<answer>NORM, SR, LPFB</answer>"
+      }
+    ]
+  },
+  {
+    "id": "8299",
+    "image": "ptb-xl-gen/records500/08000/08299_hr-0.png",
+    "ecg": "ptbxl/records500/08000/08299_hr",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<image>\nAge: 86.0, Sex: Female, Height: 152.0, Weight: 57.0. Provide the specific SCP diagnostic subclasses."
+      },
+      {
+        "from": "gpt",
+        "value": "<answer>NORM, SR</answer>"
+      }
+    ]
+  },
+  {
+    "id": "6398",
+    "image": "ptb-xl-gen/records500/06000/06398_hr-0.png",
+    "ecg": "ptbxl/records500/06000/06398_hr",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<image>\nAge: 88.0, Sex: Female, Height: N/A, Weight: N/A. Provide the specific SCP diagnostic subclasses."
+      },
+      {
+        "from": "gpt",
+        "value": "<answer>ISCIL, ISCAL, AFIB</answer>"
+      }
+    ]
+  },
+  {
+    "id": "13679",
+    "image": "ptb-xl-gen/records500/13000/13679_hr-0.png",
+    "ecg": "ptbxl/records500/13000/13679_hr",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<image>\nAge: 58.0, Sex: Female, Height: N/A, Weight: N/A. Provide the specific SCP diagnostic subclasses."
+      },
+      {
+        "from": "gpt",
+        "value": "<answer>INJAS, ISCLA, LVH, SR</answer>"
+      }
+    ]
+  },
+  {
+    "id": "3950",
+    "image": "ptb-xl-gen/records500/03000/03950_hr-0.png",
+    "ecg": "ptbxl/records500/03000/03950_hr",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<image>\nAge: 31.0, Sex: Female, Height: 178.0, Weight: 64.0. Provide the specific SCP diagnostic subclasses."
+      },
+      {
+        "from": "gpt",
+        "value": "<answer>NORM, SR</answer>"
+      }
+    ]
+  },
+  {
+    "id": "14322",
+    "image": "ptb-xl-gen/records500/14000/14322_hr-0.png",
+    "ecg": "ptbxl/records500/14000/14322_hr",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<image>\nAge: 41.0, Sex: Male, Height: 180.0, Weight: 94.0. Provide the specific SCP diagnostic subclasses."
+      },
+      {
+        "from": "gpt",
+        "value": "<answer>SR, NORM</answer>"
+      }
+    ]
+  },
+  {
+    "id": "6861",
+    "image": "ptb-xl-gen/records500/06000/06861_hr-0.png",
+    "ecg": "ptbxl/records500/06000/06861_hr",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<image>\nAge: 68.0, Sex: Male, Height: N/A, Weight: N/A. Provide the specific SCP diagnostic subclasses."
+      },
+      {
+        "from": "gpt",
+        "value": "<answer>SR, NORM</answer>"
+      }
+    ]
+  },
+  {
+    "id": "2816",
+    "image": "ptb-xl-gen/records500/02000/02816_hr-0.png",
+    "ecg": "ptbxl/records500/02000/02816_hr",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<image>\nAge: 48.0, Sex: Male, Height: 173.0, Weight: 86.0. Provide the specific SCP diagnostic subclasses."
+      },
+      {
+        "from": "gpt",
+        "value": "<answer>NORM, SR, IRBBB</answer>"
+      }
+    ]
+  },
+  {
+    "id": "14211",
+    "image": "ptb-xl-gen/records500/14000/14211_hr-0.png",
+    "ecg": "ptbxl/records500/14000/14211_hr",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<image>\nAge: 67.0, Sex: Male, Height: N/A, Weight: N/A. Provide the specific SCP diagnostic subclasses."
+      },
+      {
+        "from": "gpt",
+        "value": "<answer>IVCD, 1AVB, SR, LVH</answer>"
+      }
+    ]
+  },
+  {
+    "id": "13049",
+    "image": "ptb-xl-gen/records500/13000/13049_hr-0.png",
+    "ecg": "ptbxl/records500/13000/13049_hr",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<image>\nAge: 26.0, Sex: Female, Height: N/A, Weight: N/A. Provide the specific SCP diagnostic subclasses."
+      },
+      {
+        "from": "gpt",
+        "value": "<answer>NORM, SR</answer>"
+      }
+    ]
+  },
+  {
+    "id": "6710",
+    "image": "ptb-xl-gen/records500/06000/06710_hr-0.png",
+    "ecg": "ptbxl/records500/06000/06710_hr",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<image>\nAge: 76.0, Sex: Female, Height: 152.0, Weight: 53.0. Provide the specific SCP diagnostic subclasses."
+      },
+      {
+        "from": "gpt",
+        "value": "<answer>IRBBB, NDT, SR</answer>"
+      }
+    ]
+  },
+  {
+    "id": "17922",
+    "image": "ptb-xl-gen/records500/17000/17922_hr-0.png",
+    "ecg": "ptbxl/records500/17000/17922_hr",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<image>\nAge: 46.0, Sex: Female, Height: N/A, Weight: 93.0. Provide the specific SCP diagnostic subclasses."
+      },
+      {
+        "from": "gpt",
+        "value": "<answer>NST_, SR</answer>"
+      }
+    ]
+  },
+  {
+    "id": "8103",
+    "image": "ptb-xl-gen/records500/08000/08103_hr-0.png",
+    "ecg": "ptbxl/records500/08000/08103_hr",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<image>\nAge: 75.0, Sex: Male, Height: 176.0, Weight: 72.0. Provide the specific SCP diagnostic subclasses."
+      },
+      {
+        "from": "gpt",
+        "value": "<answer>SR, VCLVH, LVH, PAC</answer>"
+      }
+    ]
+  },
+  {
+    "id": "1220",
+    "image": "ptb-xl-gen/records500/01000/01220_hr-0.png",
+    "ecg": "ptbxl/records500/01000/01220_hr",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<image>\nAge: 83.0, Sex: Female, Height: 160.0, Weight: 55.0. Provide the specific SCP diagnostic subclasses."
+      },
+      {
+        "from": "gpt",
+        "value": "<answer>SR, LAFB, NORM</answer>"
+      }
+    ]
+  },
+  {
+    "id": "20891",
+    "image": "ptb-xl-gen/records500/20000/20891_hr-0.png",
+    "ecg": "ptbxl/records500/20000/20891_hr",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<image>\nAge: 50.0, Sex: Female, Height: N/A, Weight: N/A. Provide the specific SCP diagnostic subclasses."
+      },
+      {
+        "from": "gpt",
+        "value": "<answer>SR, ABQRS, NORM</answer>"
+      }
+    ]
+  },
+  {
+    "id": "3994",
+    "image": "ptb-xl-gen/records500/03000/03994_hr-0.png",
+    "ecg": "ptbxl/records500/03000/03994_hr",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<image>\nAge: 77.0, Sex: Male, Height: 175.0, Weight: 84.0. Provide the specific SCP diagnostic subclasses."
+      },
+      {
+        "from": "gpt",
+        "value": "<answer>SBRAD, IMI, QWAVE</answer>"
+      }
+    ]
+  },
+  {
+    "id": "17685",
+    "image": "ptb-xl-gen/records500/17000/17685_hr-0.png",
+    "ecg": "ptbxl/records500/17000/17685_hr",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<image>\nAge: 41.0, Sex: Male, Height: N/A, Weight: 85.0. Provide the specific SCP diagnostic subclasses."
+      },
+      {
+        "from": "gpt",
+        "value": "<answer>NORM, SR</answer>"
+      }
+    ]
+  },
+  {
+    "id": "13746",
+    "image": "ptb-xl-gen/records500/13000/13746_hr-0.png",
+    "ecg": "ptbxl/records500/13000/13746_hr",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<image>\nAge: 33.0, Sex: Female, Height: N/A, Weight: N/A. Provide the specific SCP diagnostic subclasses."
+      },
+      {
+        "from": "gpt",
+        "value": "<answer>NORM, SARRH</answer>"
+      }
+    ]
+  },
+  {
+    "id": "5156",
+    "image": "ptb-xl-gen/records500/05000/05156_hr-0.png",
+    "ecg": "ptbxl/records500/05000/05156_hr",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<image>\nAge: 84.0, Sex: Male, Height: N/A, Weight: N/A. Provide the specific SCP diagnostic subclasses."
+      },
+      {
+        "from": "gpt",
+        "value": "<answer>AFIB, LAFB</answer>"
+      }
+    ]
+  },
+  {
+    "id": "6058",
+    "image": "ptb-xl-gen/records500/06000/06058_hr-0.png",
+    "ecg": "ptbxl/records500/06000/06058_hr",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<image>\nAge: 87.0, Sex: Male, Height: N/A, Weight: N/A. Provide the specific SCP diagnostic subclasses."
+      },
+      {
+        "from": "gpt",
+        "value": "<answer>NST_</answer>"
+      }
+    ]
+  },
+  {
+    "id": "17533",
+    "image": "ptb-xl-gen/records500/17000/17533_hr-0.png",
+    "ecg": "ptbxl/records500/17000/17533_hr",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<image>\nAge: 22.0, Sex: Female, Height: N/A, Weight: 58.0. Provide the specific SCP diagnostic subclasses."
+      },
+      {
+        "from": "gpt",
+        "value": "<answer>NORM, SR</answer>"
+      }
+    ]
+  },
+  {
+    "id": "14918",
+    "image": "ptb-xl-gen/records500/14000/14918_hr-0.png",
+    "ecg": "ptbxl/records500/14000/14918_hr",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<image>\nAge: 53.0, Sex: Male, Height: N/A, Weight: N/A. Provide the specific SCP diagnostic subclasses."
+      },
+      {
+        "from": "gpt",
+        "value": "<answer>SBRAD, NORM</answer>"
+      }
+    ]
+  },
+  {
+    "id": "8838",
+    "image": "ptb-xl-gen/records500/08000/08838_hr-0.png",
+    "ecg": "ptbxl/records500/08000/08838_hr",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<image>\nAge: 37.0, Sex: Male, Height: N/A, Weight: 73.0. Provide the specific SCP diagnostic subclasses."
+      },
+      {
+        "from": "gpt",
+        "value": "<answer>SR, LVH</answer>"
+      }
+    ]
+  },
+  {
+    "id": "9336",
+    "image": "ptb-xl-gen/records500/09000/09336_hr-0.png",
+    "ecg": "ptbxl/records500/09000/09336_hr",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<image>\nAge: 61.0, Sex: Male, Height: N/A, Weight: N/A. Provide the specific SCP diagnostic subclasses."
+      },
+      {
+        "from": "gpt",
+        "value": "<answer>ABQRS, NORM, SR</answer>"
+      }
+    ]
+  },
+  {
+    "id": "10459",
+    "image": "ptb-xl-gen/records500/10000/10459_hr-0.png",
+    "ecg": "ptbxl/records500/10000/10459_hr",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<image>\nAge: 68.0, Sex: Male, Height: N/A, Weight: N/A. Provide the specific SCP diagnostic subclasses."
+      },
+      {
+        "from": "gpt",
+        "value": "<answer>NST_</answer>"
+      }
+    ]
+  },
+  {
+    "id": "2716",
+    "image": "ptb-xl-gen/records500/02000/02716_hr-0.png",
+    "ecg": "ptbxl/records500/02000/02716_hr",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<image>\nAge: 66.0, Sex: Male, Height: N/A, Weight: 85.0. Provide the specific SCP diagnostic subclasses."
+      },
+      {
+        "from": "gpt",
+        "value": "<answer>SR, CRBBB</answer>"
+      }
+    ]
+  },
+  {
+    "id": "19803",
+    "image": "ptb-xl-gen/records500/19000/19803_hr-0.png",
+    "ecg": "ptbxl/records500/19000/19803_hr",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<image>\nAge: 71.0, Sex: Female, Height: N/A, Weight: N/A. Provide the specific SCP diagnostic subclasses."
+      },
+      {
+        "from": "gpt",
+        "value": "<answer>ABQRS, IVCD, SR, 1AVB</answer>"
+      }
+    ]
+  },
+  {
+    "id": "14345",
+    "image": "ptb-xl-gen/records500/14000/14345_hr-0.png",
+    "ecg": "ptbxl/records500/14000/14345_hr",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<image>\nAge: 82.0, Sex: Female, Height: 163.0, Weight: 55.0. Provide the specific SCP diagnostic subclasses."
+      },
+      {
+        "from": "gpt",
+        "value": "<answer>SR, STD_, IMI</answer>"
+      }
+    ]
+  },
+  {
+    "id": "3055",
+    "image": "ptb-xl-gen/records500/03000/03055_hr-0.png",
+    "ecg": "ptbxl/records500/03000/03055_hr",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<image>\nAge: 76.0, Sex: Female, Height: N/A, Weight: N/A. Provide the specific SCP diagnostic subclasses."
+      },
+      {
+        "from": "gpt",
+        "value": "<answer>NST_, AFIB</answer>"
+      }
+    ]
+  }
+]

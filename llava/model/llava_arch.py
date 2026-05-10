@@ -92,7 +92,7 @@ class LlavaMetaModel:
                 p.requires_grad = True
 
         if pretrain_ecg_projector is not None:
-            ecg_projector_weights = torch.load(pretrain_ecg_projector, map_location='cpu')
+            ecg_projector_weights = torch.load(pretrain_ecg_projector, map_location='cpu', weights_only=False)
             def get_w(weights, keyword):
                 return {k.split(keyword + '.')[1]: v for k, v in weights.items() if keyword in k}
 
@@ -142,7 +142,7 @@ class LlavaMetaModel:
                 p.requires_grad = True
 
         if pretrain_mm_mlp_adapter is not None:
-            mm_projector_weights = torch.load(pretrain_mm_mlp_adapter, map_location='cpu')
+            mm_projector_weights = torch.load(pretrain_mm_mlp_adapter, map_location='cpu', weights_only=False)
             def get_w(weights, keyword):
                 return {k.split(keyword + '.')[1]: v for k, v in weights.items() if keyword in k}
 
@@ -424,7 +424,7 @@ class LlavaMetaForCausalLM(ABC):
                     p.requires_grad = False
 
             if model_args.pretrain_mm_mlp_adapter:
-                mm_projector_weights = torch.load(model_args.pretrain_mm_mlp_adapter, map_location='cpu')
+                mm_projector_weights = torch.load(model_args.pretrain_mm_mlp_adapter, map_location='cpu', weights_only=False)
                 embed_tokens_weight = mm_projector_weights['model.embed_tokens.weight']
                 assert num_new_tokens == 2
                 if input_embeddings.shape == embed_tokens_weight.shape:

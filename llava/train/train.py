@@ -986,8 +986,12 @@ def train(attn_implementation=None):
                     **customized_kwargs,
                 )
         else:
+            config = transformers.AutoConfig.from_pretrained(model_args.model_name_or_path, trust_remote_code=True)
+            if getattr(model_args, 'ecg_tower', None) is not None:
+                config.mm_ecg_tower = model_args.ecg_tower
             model = LlavaLlamaForCausalLM.from_pretrained(
                 model_args.model_name_or_path,
+                config=config,
                 cache_dir=training_args.cache_dir,
                 attn_implementation=attn_implementation,
                 torch_dtype=(torch.bfloat16 if training_args.bf16 else torch.float16),

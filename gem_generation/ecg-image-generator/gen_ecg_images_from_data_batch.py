@@ -5,7 +5,7 @@ from helper_functions import find_records
 from gen_ecg_image_from_data import run_single_file
 import warnings
 from tqdm import tqdm
-from concurrent.futures import ThreadPoolExecutor, as_completed
+from concurrent.futures import ProcessPoolExecutor, as_completed
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2' 
 warnings.filterwarnings("ignore")
@@ -77,17 +77,19 @@ def get_parser():
     return parser
 
 def run_single_file_wrapper(args, filename, header, original_output_dir):
+    import copy
+    args_copy = copy.deepcopy(args)
     # 为每个文件设置独立参数
-    args.input_file = os.path.join(args.input_directory, filename)
-    args.header_file = os.path.join(args.input_directory, header)
-    args.start_index = -1
+    args_copy.input_file = os.path.join(args_copy.input_directory, filename)
+    args_copy.header_file = os.path.join(args_copy.input_directory, header)
+    args_copy.start_index = -1
 
     folder_struct_list = header.split('/')[:-1]
-    args.output_directory = os.path.join(original_output_dir, '/'.join(folder_struct_list))
-    args.encoding = os.path.split(os.path.splitext(filename)[0])[1]
+    args_copy.output_directory = os.path.join(original_output_dir, '/'.join(folder_struct_list))
+    args_copy.encoding = os.path.split(os.path.splitext(filename)[0])[1]
 
     # 调用处理函数
-    return run_single_file(args)
+    return run_single_file(args_copy)
 
 def run(args):
     random.seed(args.seed)
@@ -115,7 +117,7 @@ def run(args):
     max_workers = args.num_threads  # 用户可以指定线程数
     processed_count = 0  # 用于记录处理的文件数
 
-    with ThreadPoolExecutor(max_workers=max_workers) as executor:
+    with ProcessPoolExecutor(max_workers=max_workers) as executor:
         futures = []
         for full_header_file, full_recording_file in zip(full_header_files, full_recording_files):
             futures.append(

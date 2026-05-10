@@ -20,19 +20,20 @@ class CLIPECGTower(nn.Module):
         self.model_name = getattr(args, 'open_clip_config', None)
         if self.model_name is None:
             raise ValueError('No open_clip config for building ECG encoder!')
-        self.load_model(self.model_name)
-        # if not delay_load:
-        #     self.load_model(self.model_name)
-        # elif getattr(args, 'unfreeze_mm_vision_tower', False):
-        #     self.load_model(self.model_name)
-
-        ecg_config = self.model_config.get('ecg_cfg', {})
-
-        self.hidden_size = ecg_config.get('width', 768)
-        self.seq_length = ecg_config.get('seq_length', 5000)
-        self.patch_size = ecg_config.get('patch_size', 50)
-        self.device = self.ecg_tower.state_dict()['class_embedding'].device
-        self.dtype = self.ecg_tower.state_dict()['class_embedding'].dtype
+        if not delay_load:
+            self.load_model()
+            ecg_config = self.model_config.get('ecg_cfg', {})
+            self.hidden_size = ecg_config.get('width', 768)
+            self.seq_length = ecg_config.get('seq_length', 5000)
+            self.patch_size = ecg_config.get('patch_size', 50)
+            self.device = self.ecg_tower.state_dict()['class_embedding'].device
+            self.dtype = self.ecg_tower.state_dict()['class_embedding'].dtype
+        else:
+            self.hidden_size = 768
+            self.seq_length = 5000
+            self.patch_size = 50
+            self.device = torch.device('cpu')
+            self.dtype = torch.float16
 
         self.num_patches_per_side = self.seq_length // self.patch_size
         self.num_patches = self.seq_length // self.patch_size
@@ -40,12 +41,12 @@ class CLIPECGTower(nn.Module):
     def is_loaded(self):
         return self.ecg_tower_is_loaded
 
-    def load_model(self, model_name, device_map=None):
+    def load_model(self, device_map=None):
         if self.ecg_tower_is_loaded:
-            print('{} is already loaded, `load_model` called again, skipping.'.format(self.vision_tower_name))
+            print('{} is already loaded, `load_model` called again, skipping.'.format(self.ecg_tower_name))
             return
 
-        self.ecg_tower, self.ecg_processor, self.model_config = get_ecg_encoder(model_name, checkpoint_path=self.ecg_tower_name, device='cpu')
+        self.ecg_tower, self.ecg_processor, self.model_config = get_ecg_encoder(self.model_name, checkpoint_path=self.ecg_tower_name, device='cpu')
         self.ecg_tower.requires_grad_(False)
 
         self.ecg_tower_is_loaded = True

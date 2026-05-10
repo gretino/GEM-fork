@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # distributed training configurations
-GPUS_PER_NODE=8
+GPUS_PER_NODE=2
 NNODES=1
 NODE_RANK=0
 MASTER_ADDR="127.0.0.1"
@@ -9,24 +9,28 @@ MASTER_PORT="1234"
 WORLD_SIZE=$(($GPUS_PER_NODE * $NNODES))
 
 # your huggingface configurations
-export HF_HOME=""
+#export HF_HOME=""
 
-LLM_VERSION=""
-LLM_VERSION_CLEAN="${LLM_VERSION//\//_}"
-DATA_VERSION=""
-BASE_RUN_NAME="GEM-${LLM_VERSION_CLEAN}-${DATA_VERSION}-finetune"
+if [ "$#" -ne 2 ]; then
+    echo "Usage: $0 <data_path> <run_name>"
+    exit 1
+fi
+
+data_path="$1"
+BASE_RUN_NAME="$2"
+
 echo "BASE_RUN_NAME: ${BASE_RUN_NAME}"
 
+LLM_VERSION="LANSG/GEM"
 version=llava_v1
 
-data_path=""
-image_folder=""
-ecg_folder=""
-ecg_tower=""
+image_folder="./data/ecg_images"
+ecg_folder="./data/ecg_timeseries"
+ecg_tower="/home/qfbqt/8TB/checkpoints/cpt_wfep_epoch_20.pt"
 
 num_epochs=1
-GRAD_ACC_STEP=2
-BATCH_PER_GPU=16
+GRAD_ACC_STEP=16
+BATCH_PER_GPU=1
 TOTAL_BATCH_SIZE=$(($WORLD_SIZE * $BATCH_PER_GPU))
 
 torchrun \
@@ -35,8 +39,8 @@ torchrun \
     --node_rank $NODE_RANK \
     --master_port $MASTER_PORT \
     --nnodes $NNODES \
-    ...your_path_to/train_mem.py \ 
-    --deepspeed ...your_path_to/zero2.json \
+    ./llava/train/train_mem.py \
+    --deepspeed ./scripts/zero2.json \
     --model_name_or_path ${LLM_VERSION} \
     --version ${version} \
     --data_path ${data_path} \
@@ -57,7 +61,6 @@ torchrun \
     --per_device_train_batch_size $BATCH_PER_GPU \
     --per_device_eval_batch_size $BATCH_PER_GPU \
     --gradient_accumulation_steps $GRAD_ACC_STEP \
-    --evaluation_strategy "no" \
     --save_strategy "steps" \
     --save_steps 0.2 \
     --save_total_limit 5 \
@@ -67,8 +70,8 @@ torchrun \
     --lr_scheduler_type "cosine" \
     --logging_steps 1 \
     --tf32 True \
-    --model_max_length 4096 \
+    --model_max_length 2048 \
     --gradient_checkpointing True \
-    --dataloader_num_workers 64 \
+    --dataloader_num_workers 16 \
     --lazy_preprocess True \
     --report_to wandb

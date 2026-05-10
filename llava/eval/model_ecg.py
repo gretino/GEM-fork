@@ -87,9 +87,17 @@ def eval_model(args):
         print(outputs)
 
         ans_id = shortuuid.uuid()
+        
+        # Parse golden from ans
+        ans_str = line["ans"]
+        if "<answer>" in ans_str:
+            ans_str = ans_str.split("<answer>")[-1].replace("</answer>", "").strip()
+        golden_list = [l.strip() for l in ans_str.split(",")] if ans_str else []
+
         ans_file.write(json.dumps({"question_id": idx,
                                    "prompt": cur_prompt,
                                    "text": outputs,
+                                   "golden": golden_list,
                                    "answer_id": ans_id,
                                    "model_id": model_name,
                                    "metadata": {}}) + "\n")
