@@ -1,0 +1,7 @@
+Evaluating /home/qfbqt/repo/GEM-fork/results/subclass_reasoning_qlora/predictions.jsonl on Track: subclass
+Traceback (most recent call last):
+  File "/home/qfbqt/repo/GEM-fork/scripts/evaluate_gem.py", line 86, in <module>
+    evaluate(args.results_file, args.track)
+  File "/home/qfbqt/repo/GEM-fork/scripts/evaluate_gem.py", line 49, in evaluate
+    with open(results_file, 'r', encoding='utf-8') as f:
+FileNotFoundError: [Errno 2] No such file or directory: '/home/qfbqt/repo/GEM-fork/results/subclass_reasoning_qlora/predictions.jsonl'

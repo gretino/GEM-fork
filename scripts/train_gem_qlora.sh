@@ -47,7 +47,6 @@ torchrun \
     ./llava/train/train_mem.py \
     --deepspeed ./scripts/zero2.json \
     --lora_enable True \
-    --bits 4 \
     --lora_r ${LORA_R} \
     --lora_alpha ${LORA_ALPHA} \
     --model_name_or_path ${LLM_VERSION} \

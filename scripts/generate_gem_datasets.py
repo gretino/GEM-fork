@@ -9,7 +9,18 @@ import argparse
 
 def generate_gem_datasets():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--limit", type=int, default=-1, help="Limit number of samples to process (for debugging)")
+    parser.add_argument("--limit", type=int, default=-1,
+                        help="Cap total samples before splitting (for quick smoke tests). "
+                             "-1 means use all available samples.")
+    parser.add_argument("--train-size", type=int, default=None,
+                        help="Number of training samples per variant. "
+                             "If omitted, the split falls back to --train-ratio.")
+    parser.add_argument("--test-size", type=int, default=None,
+                        help="Number of test samples per variant. "
+                             "If omitted, the split falls back to --train-ratio.")
+    parser.add_argument("--train-ratio", type=float, default=0.8,
+                        help="Fraction of data used for training when explicit sizes are "
+                             "not set (default: 0.8).")
     args = parser.parse_args()
 
     print("Loading PTB-XL database and SCP statements...")
@@ -41,6 +52,26 @@ def generate_gem_datasets():
     
     if args.limit > 0:
         ecg_ids = ecg_ids[:args.limit]
+
+    # Resolve train/test split sizes
+    total = len(ecg_ids)
+    if args.train_size is not None and args.test_size is not None:
+        train_n = args.train_size
+        test_n  = args.test_size
+        if train_n + test_n > total:
+            raise ValueError(
+                f"--train-size ({train_n}) + --test-size ({test_n}) = {train_n + test_n} "
+                f"exceeds available samples ({total}). Lower the sizes or remove --limit."
+            )
+        ecg_ids = ecg_ids[:train_n + test_n]  # trim to exactly what we need
+    elif args.train_size is not None or args.test_size is not None:
+        raise ValueError("Provide both --train-size and --test-size, or neither.")
+    else:
+        # ratio-based split
+        train_n = int(total * args.train_ratio)
+        test_n  = total - train_n
+
+    print(f"Split: {train_n} train / {test_n} test (total {train_n + test_n} of {len(df_db)} available)")
     
     output_dir = '/home/qfbqt/repo/GEM-fork/data/gem_data'
     os.makedirs(output_dir, exist_ok=True)
@@ -138,20 +169,21 @@ def generate_gem_datasets():
     print("Writing files...")
     
     def write_split(data, filename):
-        if args.limit > 0:
-            split_idx = int(len(data) * 0.8)
-            train_data = data[:split_idx]
-            test_data = data[split_idx:]
-            test_file = filename.replace("gem_train", "gem_test")
-            with open(filename, 'w') as f: json.dump(train_data, f, indent=2)
-            with open(test_file, 'w') as f: json.dump(test_data, f, indent=2)
-        else:
-            with open(filename, 'w') as f: json.dump(data, f, indent=2)
+        """Always writes both a train and a test file."""
+        train_data = data[:train_n]
+        test_data  = data[train_n:train_n + test_n]
+        test_file  = filename.replace("gem_train", "gem_test")
+        with open(filename, 'w') as f:
+            json.dump(train_data, f, indent=2)
+        with open(test_file, 'w') as f:
+            json.dump(test_data, f, indent=2)
+        print(f"  {os.path.basename(filename)}: {len(train_data)} train, "
+              f"{os.path.basename(test_file)}: {len(test_data)} test")
 
-    write_split(data_super_r, out_super_r)
+    write_split(data_super_r,  out_super_r)
     write_split(data_super_nr, out_super_nr)
-    write_split(data_sub_r, out_sub_r)
-    write_split(data_sub_nr, out_sub_nr)
+    write_split(data_sub_r,    out_sub_r)
+    write_split(data_sub_nr,   out_sub_nr)
     
     print("Done generating GEM SFT datasets.")
 

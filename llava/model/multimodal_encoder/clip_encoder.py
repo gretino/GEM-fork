@@ -38,6 +38,7 @@ class CLIPECGTower(nn.Module):
         self.num_patches_per_side = self.seq_length // self.patch_size
         self.num_patches = self.seq_length // self.patch_size
 
+    @property
     def is_loaded(self):
         return self.ecg_tower_is_loaded
 

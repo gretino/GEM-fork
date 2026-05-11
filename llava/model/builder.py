@@ -159,7 +159,19 @@ def load_pretrained_model(model_path, model_base, model_name, load_8bit=False, l
             # PEFT model
             from peft import PeftModel
             tokenizer = AutoTokenizer.from_pretrained(model_base, use_fast=False)
-            model = AutoModelForCausalLM.from_pretrained(model_base, low_cpu_mem_usage=True, **kwargs)
+            # Mirror the fix in llava/train/train.py L989-992:
+            # The base model (LANSG/GEM) has a placeholder mm_ecg_tower path in its
+            # remote config.json. Load the config from the LoRA checkpoint instead —
+            # it has the correct absolute path saved at training time.
+            try:
+                from llava.model.language_model.llava_llama import LlavaConfig
+                _cfg = LlavaConfig.from_pretrained(model_path)
+            except Exception:
+                _cfg = None
+            _from_pretrained_kwargs = dict(low_cpu_mem_usage=True, **kwargs)
+            if _cfg is not None:
+                _from_pretrained_kwargs['config'] = _cfg
+            model = AutoModelForCausalLM.from_pretrained(model_base, **_from_pretrained_kwargs)
             print(f"Loading LoRA weights from {model_path}")
             model = PeftModel.from_pretrained(model, model_path)
             print(f"Merging weights")
@@ -177,7 +189,13 @@ def load_pretrained_model(model_path, model_base, model_name, load_8bit=False, l
 
     image_processor = None
 
-    if 'llava' in model_name.lower() or 'gem' in model_name.lower():
+    _is_multimodal = (
+        'llava' in model_name.lower() or
+        'gem' in model_name.lower() or
+        getattr(model.config, 'mm_vision_tower', None) is not None or
+        callable(getattr(model, 'get_vision_tower', None))
+    )
+    if _is_multimodal:
         mm_use_im_start_end = getattr(model.config, "mm_use_im_start_end", False)
         mm_use_im_patch_token = getattr(model.config, "mm_use_im_patch_token", True)
         if mm_use_im_patch_token:
@@ -189,8 +207,11 @@ def load_pretrained_model(model_path, model_base, model_name, load_8bit=False, l
         ecg_tower = model.get_ecg_tower()
         if not ecg_tower.is_loaded:
             ecg_tower.load_model(device_map=device_map)
-        if device_map != 'auto':
-            ecg_tower.to(device=device_map, dtype=torch.float16)
+        # get_ecg_encoder always loads to CPU regardless of device_map.
+        # Explicitly move to the model's device — mirrors training's:
+        #   ecg_tower.to(dtype=..., device=training_args.device)
+        _target_device = device_map if device_map != 'auto' else next(model.parameters()).device
+        ecg_tower.to(device=_target_device, dtype=torch.float16)
 
         vision_tower = model.get_vision_tower()
         if not vision_tower.is_loaded:
