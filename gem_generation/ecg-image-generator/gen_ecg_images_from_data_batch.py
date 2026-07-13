@@ -77,16 +77,20 @@ def get_parser():
     return parser
 
 def run_single_file_wrapper(args, filename, header, original_output_dir):
+    # Check if target image already exists flat at the root level to avoid regenerating it
+    encoding = os.path.split(os.path.splitext(filename)[0])[1]
+    out_file = os.path.join(original_output_dir, f"{encoding}-0.png")
+    if os.path.exists(out_file):
+        return 1
+
     import copy
     args_copy = copy.deepcopy(args)
     # 为每个文件设置独立参数
     args_copy.input_file = os.path.join(args_copy.input_directory, filename)
     args_copy.header_file = os.path.join(args_copy.input_directory, header)
     args_copy.start_index = -1
-
-    folder_struct_list = header.split('/')[:-1]
-    args_copy.output_directory = os.path.join(original_output_dir, '/'.join(folder_struct_list))
-    args_copy.encoding = os.path.split(os.path.splitext(filename)[0])[1]
+    args_copy.output_directory = original_output_dir
+    args_copy.encoding = encoding
 
     # 调用处理函数
     return run_single_file(args_copy)

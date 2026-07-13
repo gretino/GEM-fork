@@ -28,7 +28,7 @@ conda run -n gem python gen_ecg_image_from_data.py \
     -hea "$HEA_FILE" \
     -o "$OUT_DIR" \
     -se 0 \
-    --num_columns 2 \
+    --num_columns 1 \
     -st 0
 
 echo "Done! The generated image is saved in:"

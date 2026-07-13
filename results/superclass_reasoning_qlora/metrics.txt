@@ -1,13 +1,9 @@
-Evaluating /home/qfbqt/repo/GEM-fork/results/superclass_reasoning_qlora/predictions.jsonl on Track: superclass
-Traceback (most recent call last):
-  File "/home/qfbqt/repo/GEM-fork/scripts/evaluate_gem.py", line 86, in <module>
-    evaluate(args.results_file, args.track)
-  File "/home/qfbqt/repo/GEM-fork/scripts/evaluate_gem.py", line 75, in evaluate
-    metrics = compute_metrics(predict_list, golden_list, classes=all_classes)
-  File "/home/qfbqt/repo/GEM-fork/scripts/evaluate_gem.py", line 13, in compute_metrics
-    hl = hamming_loss(y_true_bin, y_pred_bin)
-  File "/home/qfbqt/miniconda3/envs/gem/lib/python3.10/site-packages/sklearn/utils/_param_validation.py", line 213, in wrapper
-    return func(*args, **kwargs)
-  File "/home/qfbqt/miniconda3/envs/gem/lib/python3.10/site-packages/sklearn/metrics/_classification.py", line 2803, in hamming_loss
-    return n_differences / (y_true.shape[0] * y_true.shape[1] * weight_average)
-ZeroDivisionError: float division by zero
+Evaluating results/superclass_reasoning_qlora/predictions.jsonl on Track: superclass
+  Loaded 2000 ground-truth labels from data/gem_data/gem_test_superclass_reasoning.json
+  Total samples evaluated: 2000
+  Label space size: 5
+Macro F1: 61.32
+Micro F1: 64.24
+Macro AUC: 75.09
+Hamming Loss: 18.46
+Accuracy: 48.45

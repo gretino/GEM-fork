@@ -4,11 +4,20 @@ from .clip_encoder import CLIPVisionTower, CLIPVisionTowerS2, CLIPECGTower
 def build_ecg_tower(ecg_tower_cfg, **kwargs):
     model_name = getattr(ecg_tower_cfg, 'mm_ecg_tower', getattr(ecg_tower_cfg, 'ecg_tower', None))
     checkpoint_path = getattr(ecg_tower_cfg, 'mm_ecg_tower', getattr(ecg_tower_cfg, 'ecg_tower', None))
+    
+    if checkpoint_path and not os.path.exists(checkpoint_path):
+        # Fall back to standard checkpoint location
+        basename = os.path.basename(checkpoint_path)
+        candidate = os.path.join('/home/qfbqt/8TB/checkpoints', basename)
+        if os.path.exists(candidate):
+            checkpoint_path = candidate
+
     is_absolute_path_exists = os.path.exists(checkpoint_path)
     if is_absolute_path_exists:
         return CLIPECGTower(checkpoint_path, args=ecg_tower_cfg, **kwargs)
 
     raise ValueError(f'Unknown ecg tower: {checkpoint_path}')
+
     
 def build_vision_tower(vision_tower_cfg, **kwargs):
     vision_tower = getattr(vision_tower_cfg, 'mm_vision_tower', getattr(vision_tower_cfg, 'vision_tower', None))

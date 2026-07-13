@@ -111,7 +111,7 @@ def eval_model(args):
                 existing_data = json.loads(line)
                 existing_question_ids.add(existing_data["question_id"])  # Track existing question_ids
 
-    output_file = open(args.answers_file, "w")
+    output_file = open(args.answers_file, "a")
 
     for line in tqdm(questions):
         idx = line["question_id"]
@@ -122,6 +122,25 @@ def eval_model(args):
 
         image_file = line["image"]
         ecg_file = line["ecg"]
+
+        # Support benchmark path mappings for PTB-XL
+        if "ecg_ptbxl_benchmarking/data/ptbxl/" in ecg_file:
+            ecg_file = ecg_file.replace("ecg_ptbxl_benchmarking/data/ptbxl/", "")
+        if image_file.startswith("ptb-xl/"):
+            resolved = False
+            if "records500/" in ecg_file:
+                subfolder = os.path.dirname(ecg_file)
+                deeper_image_file = os.path.join(subfolder, os.path.basename(image_file))
+                if os.path.exists(os.path.join(args.image_folder, deeper_image_file)):
+                    image_file = deeper_image_file
+                    resolved = True
+            
+            if not resolved:
+                if os.path.exists(os.path.join(args.image_folder, image_file)):
+                    pass
+                else:
+                    image_file = os.path.basename(image_file)
+
         qs = line["text"]
         cur_prompt = qs
         if model.config.mm_use_im_start_end:

@@ -50,14 +50,6 @@ def find_records(folder, output_dir):
         raise Exception("The input directory does not have any WFDB compatible ECG files, please re-check the folder!")
 
 
-    for file in recording_files:
-        f, ext = os.path.splitext(file)
-        f1 = f.split('/')[:-1]
-        f1 = '/'.join(f1)
-
-        if os.path.exists(os.path.join(output_dir, f1)) == False:
-            os.makedirs(os.path.join(output_dir, f1))
-
     return header_files, recording_files
 
 
@@ -121,12 +113,10 @@ def load_header(header_file):
 def load_recording(recording_file, header=None,key='val'):
     rootname,extension = os.path.splitext(recording_file)
     #Load files differently based on file format
-    if extension=='.dat':
+    if extension=='.dat' or extension=='.mat':
         recording = wfdb.rdrecord(rootname)
         return recording.p_signal
-    if extension=='.mat':
-        recording = loadmat(recording_file)[key]
-    return recording
+    return None
 
 # Get leads from header.
 def get_leads(header):
