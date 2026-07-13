@@ -1,0 +1,23 @@
+experiment_name: ablation_imagesize_448
+dataset_name: mimic
+task: feature_pretrain
+data_config: FILIP-data.md
+
+model:
+  vision_encoder: openai/clip-vit-base-patch32
+  image_size: 448
+  patch_size: 32
+  use_feature_alignment: true
+  feature_pooling: topk
+  feature_topk: 8
+  feature_align_dim: 256
+
+loss:
+  feature_loss_weight: 1.0
+
+training:
+  batch_size: 32
+  learning_rate: 1.0e-4
+  epochs: 10
+  mixed_precision: true
+  report_to: wandb

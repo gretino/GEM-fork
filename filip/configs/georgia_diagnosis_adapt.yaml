@@ -1,0 +1,27 @@
+experiment_name: georgia_adapt
+dataset_name: ptbxl
+task: diagnosis_adapt
+data_config: FILIP-data.md
+data_root: /home/qfbqt/repo/GEM-fork/data/georgia/
+stage1_checkpoint: outputs/filip/ablation_vit_large_patch14/checkpoints/best.pt
+
+model:
+  vision_encoder: openai/clip-vit-large-patch14
+  image_size: 224
+  patch_size: 14
+  use_feature_alignment: true
+  diagnosis_from_features: true
+  use_adapters: true
+  adapter_type: lora
+  num_diagnosis: 6
+
+loss:
+  diagnosis_loss_weight: 1.0
+  feature_consistency_weight: 0.1
+
+training:
+  batch_size: 32
+  learning_rate: 5.0e-6
+  epochs: 10
+  mixed_precision: true
+  report_to: wandb

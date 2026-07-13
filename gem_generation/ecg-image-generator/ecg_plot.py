@@ -124,9 +124,9 @@ def ecg_plot(
 
     rows  = int(ceil(leads/columns))
 
-    # if(full_mode!='None'):
-    #     rows+=1
-    #     leads+=1
+    if(full_mode!='None'):
+        rows+=1
+        leads+=1
     
     #Grid calibration
     #Each big grid corresponds to 0.2 seconds and 0.5 mV
@@ -153,7 +153,7 @@ def ecg_plot(
     x_grid_dots = x_grid*resolution
  
     #row_height = height * y_grid_size/(y_grid*(rows+2))
-    row_height = (height * y_grid_size/y_grid)/(rows)
+    row_height = (height * y_grid_size/y_grid)/(rows+2)
     x_max = width * x_grid_size / x_grid
     x_min = 0
     x_gap = np.floor(((x_max - (columns*secs))/2)/0.2)*0.2
@@ -219,7 +219,7 @@ def ecg_plot(
     if(show_dc_pulse):
         dc_offset = sample_rate*standard_values['dc_offset_length']*step
     #Iterate through each lead in lead_index array.
-    y_offset = -(row_height/2)
+    y_offset = (row_height/2)
     x_offset = 0
 
     leads_ds = []
@@ -483,8 +483,8 @@ def ecg_plot(
                 y_offset -= 0.5
 
     #change x and y res
-    # ax.text(2, 0.5, '25mm/s', fontsize=lead_fontsize)
-    # ax.text(4, 0.5, '10mm/mV', fontsize=lead_fontsize)
+    ax.text(2, 0.5, '25mm/s', fontsize=lead_fontsize)
+    ax.text(4, 0.5, '10mm/mV', fontsize=lead_fontsize)
     
     if(show_grid):
         ax.set_xticks(np.arange(x_min,x_max,x_grid_size))    
