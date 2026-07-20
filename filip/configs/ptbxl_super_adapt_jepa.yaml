@@ -1,8 +1,8 @@
-experiment_name: ptbxl_form_adapt_jepa
+experiment_name: ptbxl_super_adapt_jepa
 dataset_name: ptbxl
 task: diagnosis_adapt
 data_config: FILIP-data.md
-data_root: data/ptbxl_form/
+data_root: data/ptbxl_super_class/
 stage1_checkpoint: outputs/filip/ablation_vit_large_jepa/checkpoints/best.pt
 
 model:
@@ -15,7 +15,7 @@ model:
   diagnosis_from_features: false
   use_adapters: true
   adapter_type: lora
-  num_diagnosis: 19
+  num_diagnosis: 5
 
 loss:
   diagnosis_loss_weight: 1.0

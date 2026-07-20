@@ -100,13 +100,67 @@ def train_ptbxl():
         print("Warning: Stage 1 checkpoint not specified, starting from scratch!")
         
     freeze_backbone = config.get('training', {}).get('freeze_backbone', False)
+    unfreeze_last_n = config.get('training', {}).get('unfreeze_last_n_layers', None)
+    
     if freeze_backbone:
         print("Freezing all parameters except diagnosis_head (Linear Probe mode)...")
         for name, param in model.named_parameters():
             if "diagnosis_head" not in name:
                 param.requires_grad = False
+    elif unfreeze_last_n is not None and unfreeze_last_n > 0:
+        if hasattr(model, 'vision_encoder') and hasattr(model.vision_encoder.encoder, 'vision_model') and hasattr(model.vision_encoder.encoder.vision_model, 'encoder'):
+            layers = model.vision_encoder.encoder.vision_model.encoder.layers
+            total_layers = len(layers)
+            cutoff_layer = max(0, total_layers - unfreeze_last_n)
+            print(f"Partial Freezing: Freezing ViT layers 0 to {cutoff_layer - 1} out of {total_layers} (unfreezing last {unfreeze_last_n} layers + heads)...")
+            
+            # Freeze embeddings and pre_layrnorm
+            for param in model.vision_encoder.encoder.vision_model.embeddings.parameters():
+                param.requires_grad = False
+            if hasattr(model.vision_encoder.encoder.vision_model, 'pre_layrnorm') and model.vision_encoder.encoder.vision_model.pre_layrnorm is not None:
+                for param in model.vision_encoder.encoder.vision_model.pre_layrnorm.parameters():
+                    param.requires_grad = False
+                    
+            # Freeze early ViT layers
+            for i in range(cutoff_layer):
+                for param in layers[i].parameters():
+                    param.requires_grad = False
+        else:
+            print(f"Warning: Could not identify transformer layer structure for unfreeze_last_n_layers={unfreeze_last_n}.")
+            
+    trainable_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
+    total_params = sum(p.numel() for p in model.parameters())
+    print(f"Model Parameters: {trainable_params:,} trainable out of {total_params:,} total ({trainable_params/total_params*100:.2f}%).")
+    
+    backbone_lr = float(config.get('training', {}).get('backbone_lr', config.get('training', {}).get('learning_rate', 3.0e-5)))
+    if 'head_lr' in config.get('training', {}):
+        head_lr = float(config['training']['head_lr'])
+    else:
+        head_lr_scale = float(config.get('training', {}).get('head_lr_scale', 10.0))
+        head_lr = backbone_lr * head_lr_scale
+        
+    weight_decay = float(config.get('training', {}).get('weight_decay', 0.01))
+    
+    head_params = []
+    other_params = []
+    for name, param in model.named_parameters():
+        if param.requires_grad:
+            if "diagnosis_head" in name:
+                head_params.append(param)
+            else:
+                other_params.append(param)
                 
-    optimizer = torch.optim.AdamW(filter(lambda p: p.requires_grad, model.parameters()), lr=config['training']['learning_rate'])
+    if head_params and head_lr != backbone_lr:
+        print(f"Explicit Differential LRs: Backbone LR = {backbone_lr:.2e}, Diagnosis Head LR = {head_lr:.2e}")
+        param_groups = [
+            {'params': other_params, 'lr': backbone_lr},
+            {'params': head_params, 'lr': head_lr}
+        ]
+    else:
+        print(f"Uniform Learning Rate: LR = {backbone_lr:.2e}")
+        param_groups = [{'params': other_params + head_params, 'lr': backbone_lr}]
+        
+    optimizer = torch.optim.AdamW(param_groups, weight_decay=weight_decay)
     epochs = config['training']['epochs']
     
     experiment_name = config.get('experiment_name', 'ptbxl_diagnosis_adapt')
@@ -128,7 +182,8 @@ def train_ptbxl():
                 project="filip-ecg",
                 name=run_name,
                 config={
-                    "learning_rate": config['training']['learning_rate'],
+                    "backbone_lr": backbone_lr,
+                    "head_lr": head_lr,
                     "batch_size": config['training']['batch_size'],
                     "epochs": config['training']['epochs'],
                     "config_path": args.config,

@@ -14,9 +14,12 @@ fi
 
 # Define the tasks list: format name:config:pcts
 TASKS=(
-    "ptbxl_sub_adapt_jepa:filip/configs/ptbxl_sub_adapt_jepa.yaml:1 10 100"
-    "ptbxl_form_adapt_jepa:filip/configs/ptbxl_form_adapt_jepa.yaml:1 10 100"
-    "csn_adapt_jepa:filip/configs/csn_adapt_jepa.yaml:1 10 100"
+    "ptbxl_super_adapt_jepa:filip/configs/ptbxl_super_adapt_jepa.yaml:1 10 100"
+    "ptbxl_rhythm_adapt_jepa:filip/configs/ptbxl_rhythm_adapt_jepa.yaml:1 10 100"
+    "cpsc_adapt_jepa:filip/configs/cpsc_adapt_jepa.yaml:1 10 100"
+    #"ptbxl_sub_adapt_jepa:filip/configs/ptbxl_sub_adapt_jepa.yaml:1 10 100"
+    #"ptbxl_form_adapt_jepa:filip/configs/ptbxl_form_adapt_jepa.yaml:1 10 100"
+    #"csn_adapt_jepa:filip/configs/csn_adapt_jepa.yaml:1 10 100"
 )
 
 COUNTER_FILE="tasks_counter_jepa.txt"
