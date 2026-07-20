@@ -60,14 +60,34 @@ class FILIPVisionEncoder(nn.Module):
             self.encoder = CLIPVisionModel.from_pretrained(model_name)
             print(f"Initialized standard CLIPVisionModel from {model_name} with image_size={image_size}, patch_size={patch_size}")
         
-    def forward(self, images):
-        # outputs.hidden_states is a tuple of all layer outputs if output_hidden_states=True
-        outputs = self.encoder(images, output_hidden_states=True)
-        # Select the last hidden state
-        last_hidden = outputs.hidden_states[-1]
-        # Drop the CLS token (index 0) to return only patch tokens
-        patch_features = last_hidden[:, 1:, :] # [B, P, H]
-        return patch_features
+        self.mask_token = nn.Parameter(torch.zeros(self.hidden_size))
+        nn.init.normal_(self.mask_token, std=0.02)
+        
+    def forward(self, images, mask=None):
+        if mask is None:
+            # outputs.hidden_states is a tuple of all layer outputs if output_hidden_states=True
+            outputs = self.encoder(images, output_hidden_states=True)
+            # Select the last hidden state
+            last_hidden = outputs.hidden_states[-1]
+            # Drop the CLS token (index 0) to return only patch tokens
+            patch_features = last_hidden[:, 1:, :] # [B, P, H]
+            return patch_features
+        else:
+            # Masked forward pass
+            hidden_states = self.encoder.vision_model.embeddings(images)
+            mask_expanded = mask.unsqueeze(-1) # [B, P, 1]
+            patch_embeds = hidden_states[:, 1:, :]
+            patch_embeds = torch.where(mask_expanded, self.mask_token.to(patch_embeds.dtype), patch_embeds)
+            hidden_states = torch.cat([hidden_states[:, :1, :], patch_embeds], dim=1)
+            
+            hidden_states = self.encoder.vision_model.pre_layrnorm(hidden_states)
+            encoder_outputs = self.encoder.vision_model.encoder(
+                inputs_embeds=hidden_states,
+                output_hidden_states=True,
+            )
+            last_hidden = encoder_outputs[0]
+            patch_features = last_hidden[:, 1:, :] # [B, P, H]
+            return patch_features
         
     @property
     def hidden_size(self):

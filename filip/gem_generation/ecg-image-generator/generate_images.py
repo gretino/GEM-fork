@@ -75,9 +75,13 @@ class ImageGenArgs:
         for k, v in kwargs.items():
             setattr(self, k, v)
 
-def process_single_record(record, dataset_dir, images_dir):
+def process_single_record(record, images_dir):
     path_rel = record["path"]
     study_id = str(record["study_id"])
+    dataset_dir = record.get("source_dir")
+    
+    if dataset_dir is None:
+        return False, f"Missing source_dir for {study_id} (run build_master_list.py again to add it)"
     
     # Skip if image already exists
     out_file = os.path.join(images_dir, f"{study_id}-0.png")
@@ -106,7 +110,7 @@ def process_single_record(record, dataset_dir, images_dir):
     except Exception as e:
         return False, f"Failed for {study_id}: {str(e)}"
 
-def generate_images(dataset_dir, output_dir, images_dir, num_workers):
+def generate_images(output_dir, images_dir, num_workers):
     # Load targeted records from split JSON files
     all_target_records = []
     splits = ["train", "val", "test"]
@@ -121,7 +125,7 @@ def generate_images(dataset_dir, output_dir, images_dir, num_workers):
     os.makedirs(images_dir, exist_ok=True)
 
     # Parallel processing using Pool
-    process_func = partial(process_single_record, dataset_dir=dataset_dir, images_dir=images_dir)
+    process_func = partial(process_single_record, images_dir=images_dir)
     
     success_count = 0
     failure_messages = []
@@ -144,8 +148,6 @@ def generate_images(dataset_dir, output_dir, images_dir, num_workers):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Parallel ECG image generation for the FILIP experiment.")
-    parser.add_argument("--dataset_dir", type=str, default="/home/qfbqt/8TB/blmcg/datasets/physionet.org.5/files/mimic-iv-ecg/1.0/",
-                        help="Path to the raw MIMIC-IV-ECG dataset directory.")
     parser.add_argument("--output_dir", type=str, default="/home/qfbqt/repo/GEM-fork/data/mimic-iv-ecg/",
                         help="Path to output directory containing record splits.")
     parser.add_argument("--images_dir", type=str, default="/home/qfbqt/repo/GEM-fork/data/mimic-iv-ecg/images/",
@@ -154,4 +156,4 @@ if __name__ == "__main__":
                         help="Number of workers to use for parallel processing.")
     
     args = parser.parse_args()
-    generate_images(args.dataset_dir, args.output_dir, args.images_dir, args.num_workers)
+    generate_images(args.output_dir, args.images_dir, args.num_workers)

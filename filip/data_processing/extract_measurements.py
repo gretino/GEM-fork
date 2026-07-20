@@ -4,7 +4,7 @@ import json
 import pandas as pd
 import numpy as np
 
-def extract_measurements(dataset_dir, output_dir):
+def extract_measurements(dataset_dirs, output_dir):
     # Load all target records from splits
     all_target_records = []
     splits = ["train", "val", "test"]
@@ -19,14 +19,20 @@ def extract_measurements(dataset_dir, output_dir):
     target_study_ids = {int(r["study_id"]) for r in all_target_records}
     print(f"Total target records to extract measurements for: {len(target_study_ids)}")
 
-    # Load machine_measurements.csv
-    measurements_csv_path = os.path.join(dataset_dir, "machine_measurements.csv")
-    if not os.path.exists(measurements_csv_path):
-        raise FileNotFoundError(f"machine_measurements.csv not found at {measurements_csv_path}")
-
-    print(f"Loading measurements from {measurements_csv_path}...")
-    # Read the full csv
-    df = pd.read_csv(measurements_csv_path)
+    print("Loading measurements from dataset directories...")
+    dfs = []
+    for dataset_dir in dataset_dirs:
+        measurements_csv_path = os.path.join(dataset_dir, "machine_measurements.csv")
+        if os.path.exists(measurements_csv_path):
+            print(f"Loading from {measurements_csv_path}...")
+            dfs.append(pd.read_csv(measurements_csv_path))
+        else:
+            print(f"Warning: machine_measurements.csv not found in {dataset_dir}")
+            
+    if not dfs:
+        raise FileNotFoundError("No machine_measurements.csv found in any provided directory.")
+        
+    df = pd.concat(dfs, ignore_index=True)
 
     # Filter to only targeted study_ids
     df_filtered = df[df["study_id"].isin(target_study_ids)].copy()
@@ -127,10 +133,14 @@ def extract_measurements(dataset_dir, output_dir):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Extract machine measurements and diagnoses.")
-    parser.add_argument("--dataset_dir", type=str, default="/home/qfbqt/8TB/blmcg/datasets/physionet.org.5/files/mimic-iv-ecg/1.0/",
-                        help="Path to the raw MIMIC-IV-ECG dataset directory.")
+    parser.add_argument("--dataset_dirs", type=str, nargs="+",
+                        default=[
+                            "/home/qfbqt/8TB/blmcg/datasets/physionet.org.5/files/mimic-iv-ecg/1.0/",
+                            "/home/qfbqt/8TB/blmcg/datasets/physionet.org/files/mimic-iv-ecg/1.0/"
+                        ],
+                        help="Paths to the raw MIMIC-IV-ECG dataset directories.")
     parser.add_argument("--output_dir", type=str, default="/home/qfbqt/repo/GEM-fork/data/mimic-iv-ecg/",
                         help="Path to output directory containing record splits.")
     
     args = parser.parse_args()
-    extract_measurements(args.dataset_dir, args.output_dir)
+    extract_measurements(args.dataset_dirs, args.output_dir)

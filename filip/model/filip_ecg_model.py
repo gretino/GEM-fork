@@ -49,6 +49,43 @@ class FILIPECGModel(nn.Module):
         else:
             # Standard prediction from pooled image features if needed
             self.diagnosis_head = nn.Linear(self.hidden_size, self.num_diagnosis)
+            
+        # Regular Prediction Dropout
+        self.dropout = nn.Dropout(p=0.1)
+
+        # JEPA configuration
+        self.use_jepa = config.get('model', {}).get('use_jepa', False)
+        if self.use_jepa:
+            self.target_encoder = FILIPVisionEncoder(
+                model_name=vision_model_name,
+                image_size=image_size,
+                patch_size=patch_size
+            )
+            self.target_encoder.load_state_dict(self.vision_encoder.state_dict())
+            for param in self.target_encoder.parameters():
+                param.requires_grad = False
+                
+            predictor_dim = config.get('model', {}).get('jepa_predictor_dim', self.hidden_size)
+            self.num_patches = (image_size // patch_size) ** 2
+            
+            self.predictor_mask_token = nn.Parameter(torch.zeros(predictor_dim))
+            nn.init.normal_(self.predictor_mask_token, std=0.02)
+            
+            self.predictor_pos_embedding = nn.Embedding(self.num_patches, predictor_dim)
+            nn.init.normal_(self.predictor_pos_embedding.weight, std=0.02)
+            
+            self.predictor_proj = nn.Linear(self.hidden_size, predictor_dim)
+            
+            encoder_layer = nn.TransformerEncoderLayer(
+                d_model=predictor_dim,
+                nhead=16,
+                dim_feedforward=2048,
+                batch_first=True
+            )
+            self.predictor = nn.TransformerEncoder(encoder_layer, num_layers=2)
+            
+            if predictor_dim != self.hidden_size:
+                self.predictor_out_proj = nn.Linear(predictor_dim, self.hidden_size)
 
     def forward(self, images):
         outputs = {}
@@ -69,9 +106,40 @@ class FILIPECGModel(nn.Module):
             if self.diagnosis_from_features:
                 diagnosis_logits = self.diagnosis_head(outputs["feature_logits"])
             else:
-                # Fallback: global mean pooling over patches
                 pooled_image = patch_features.mean(dim=1)
+                pooled_image = self.dropout(pooled_image)
                 diagnosis_logits = self.diagnosis_head(pooled_image)
             outputs["diagnosis_logits"] = diagnosis_logits
             
         return outputs
+
+    @torch.no_grad()
+    def update_target_encoder(self):
+        for param_c, param_t in zip(self.vision_encoder.parameters(), self.target_encoder.parameters()):
+            param_t.data.mul_(0.996).add_(param_c.data, alpha=0.004)
+
+    def forward_jepa(self, images, mask):
+        B = images.shape[0]
+        # Target representations from unmasked EMA target encoder
+        with torch.no_grad():
+            target_masked_latents = self.target_encoder(images) # [B, P, H]
+            
+        # Context representations from masked context encoder
+        context_features = self.vision_encoder(images, mask=mask) # [B, P, H]
+        
+        # Predictor forward pass
+        proj_features = self.predictor_proj(context_features) # [B, P, D]
+        
+        mask_token_expanded = self.predictor_mask_token.expand(B, self.num_patches, -1)
+        predictor_input = torch.where(mask.unsqueeze(-1), mask_token_expanded, proj_features)
+        
+        pos_ids = torch.arange(self.num_patches, device=images.device).unsqueeze(0) # [1, P]
+        pos_embed = self.predictor_pos_embedding(pos_ids) # [1, P, D]
+        predictor_input = predictor_input + pos_embed
+        
+        predicted_latents = self.predictor(predictor_input) # [B, P, D]
+        
+        if hasattr(self, 'predictor_out_proj'):
+            predicted_latents = self.predictor_out_proj(predicted_latents)
+            
+        return predicted_latents, target_masked_latents

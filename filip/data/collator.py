@@ -21,5 +21,10 @@ def ecg_collate_fn(batch):
     if batch[0].get("diagnosis_targets") is not None:
         collated["diagnosis_targets"] = torch.stack([item["diagnosis_targets"] for item in batch])
         collated["diagnosis_mask"] = torch.stack([item["diagnosis_mask"] for item in batch])
+        
+    # Morphology Targets
+    if batch[0].get("morphology_targets") is not None:
+        collated["morphology_targets"] = torch.stack([item["morphology_targets"] for item in batch])
+        collated["morphology_mask"] = torch.stack([item["morphology_mask"] for item in batch])
     
     return collated

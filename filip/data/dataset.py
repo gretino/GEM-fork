@@ -30,11 +30,16 @@ class ECGImageDataset(Dataset):
         
         # Load targets based on dataset_name
         self.targets = {}
+        self.morphology = {}
         if self.dataset_name == 'mimic':
             target_path = os.path.join(data_root, "features.json")
             if os.path.exists(target_path):
                 with open(target_path, 'r') as f:
                     self.targets = json.load(f)
+            morphology_path = os.path.join(data_root, "diagnoses.json")
+            if os.path.exists(morphology_path):
+                with open(morphology_path, 'r') as f:
+                    self.morphology = json.load(f)
         elif self.dataset_name == 'ptbxl':
             target_path = os.path.join(data_root, "diagnoses.json")
             if os.path.exists(target_path):
@@ -73,7 +78,9 @@ class ECGImageDataset(Dataset):
             "feature_targets": None,
             "feature_mask": None,
             "diagnosis_targets": None,
-            "diagnosis_mask": None
+            "diagnosis_mask": None,
+            "morphology_targets": None,
+            "morphology_mask": None
         }
         
         # Load targets if available
@@ -110,5 +117,44 @@ class ECGImageDataset(Dataset):
                 
                 sample["diagnosis_targets"] = diag_array
                 sample["diagnosis_mask"] = diag_mask
+                
+        # Load morphology targets for mimic if available
+        if self.dataset_name == 'mimic':
+            morph_array = torch.zeros(7, dtype=torch.float32)
+            morph_mask = torch.zeros(7, dtype=torch.float32)
+            
+            if study_id in self.morphology:
+                morphology_dict = self.morphology[study_id]
+                morph_metrics = ['pr_interval', 'qrs_duration', 'qt_interval', 'rr_interval', 'p_axis', 'qrs_axis', 't_axis']
+                bounds = {
+                    'pr_interval': (0, 500),
+                    'qrs_duration': (0, 300),
+                    'qt_interval': (0, 800),
+                    'rr_interval': (200, 3000),
+                    'p_axis': (-180, 180),
+                    'qrs_axis': (-180, 180),
+                    't_axis': (-180, 180)
+                }
+                stats = {
+                    'pr_interval': {'mean': 164.7816, 'std': 35.2563},
+                    'qrs_duration': {'mean': 101.6943, 'std': 24.3214},
+                    'qt_interval': {'mean': 400.9349, 'std': 50.2524},
+                    'rr_interval': {'mean': 817.6569, 'std': 199.6918},
+                    'p_axis': {'mean': 44.8669, 'std': 30.6746},
+                    'qrs_axis': {'mean': 9.6230, 'std': 46.1662},
+                    't_axis': {'mean': 41.4568, 'std': 59.9372}
+                }
+                
+                for i, m in enumerate(morph_metrics):
+                    val = morphology_dict.get(m)
+                    if val is not None:
+                        min_v, max_v = bounds[m]
+                        if min_v <= val <= max_v:
+                            std_val = (val - stats[m]['mean']) / stats[m]['std']
+                            morph_array[i] = float(std_val)
+                            morph_mask[i] = 1.0
+                            
+            sample["morphology_targets"] = morph_array
+            sample["morphology_mask"] = morph_mask
                 
         return sample

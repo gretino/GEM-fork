@@ -45,3 +45,46 @@ def feature_consistency_loss(current_feature_logits, frozen_feature_logits):
     current_probs = torch.sigmoid(current_feature_logits)
     frozen_probs = torch.sigmoid(frozen_feature_logits)
     return F.mse_loss(current_probs, frozen_probs)
+
+def asymmetric_loss(diagnosis_logits, diagnosis_targets, diagnosis_mask, gamma_pos=0.0, gamma_neg=2.0, clip=0.05, eps=1e-8):
+    """
+    Computes Asymmetric Loss for multilabel classification.
+    """
+    probs = torch.sigmoid(diagnosis_logits)
+    
+    probs_pos = probs
+    probs_neg = 1 - probs
+    
+    # Asymmetric Clipping for negative samples
+    if clip > 0:
+        probs_neg = (probs_neg + clip).clamp(max=1.0)
+        
+    los_pos = diagnosis_targets * torch.log(probs_pos.clamp(min=eps))
+    los_neg = (1 - diagnosis_targets) * torch.log(probs_neg.clamp(min=eps))
+    loss = los_pos + los_neg
+    
+    # Asymmetric Focusing
+    pt0 = probs_pos * diagnosis_targets
+    pt1 = probs_neg * (1 - diagnosis_targets)
+    pt = pt0 + pt1
+    
+    one_sided_gamma = gamma_pos * diagnosis_targets + gamma_neg * (1 - diagnosis_targets)
+    one_sided_w = torch.pow(1 - pt, one_sided_gamma)
+    
+    raw_loss = - (loss * one_sided_w)
+    
+    masked_loss = raw_loss * diagnosis_mask
+    return masked_loss.sum() / diagnosis_mask.sum().clamp_min(1.0)
+
+def masked_mse_loss(preds, targets, mask):
+    """
+    Computes MSE loss only on valid (masked) elements.
+    preds: [B, N]
+    targets: [B, N]
+    mask: [B, N]
+    """
+    raw_loss = F.mse_loss(preds, targets, reduction='none')
+    masked_loss = raw_loss * mask
+    
+    return masked_loss.sum() / mask.sum().clamp_min(1.0)
+

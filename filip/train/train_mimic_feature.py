@@ -13,8 +13,42 @@ from filip.data.dataset import ECGImageDataset
 from filip.data.collator import ecg_collate_fn
 from filip.model.filip_ecg_model import FILIPECGModel
 from filip.model.losses import feature_loss
+import numpy as np
+import torch.nn.functional as F
+import random
 
 from PIL import Image
+
+def generate_batch_mask(batch_size, H_grid, W_grid, device):
+    masks = []
+    for _ in range(batch_size):
+        mask = torch.zeros((H_grid, W_grid), dtype=torch.bool)
+        for _ in range(4):
+            best_r, best_c, best_h, best_w = None, None, None, None
+            min_overlap_ratio = 1.0
+            
+            for _ in range(20):
+                h = random.choice([1, 2])
+                w = random.choice([2, 3, 4])
+                
+                r_start = random.randint(1, H_grid - 1 - h)
+                c_start = random.randint(1, W_grid - w)
+                
+                block_mask = mask[r_start:r_start+h, c_start:c_start+w]
+                overlap_ratio = block_mask.float().mean().item()
+                
+                if overlap_ratio <= 0.25:
+                    best_r, best_c, best_h, best_w = r_start, c_start, h, w
+                    break
+                elif overlap_ratio < min_overlap_ratio:
+                    min_overlap_ratio = overlap_ratio
+                    best_r, best_c, best_h, best_w = r_start, c_start, h, w
+            
+            if best_r is not None:
+                mask[best_r:best_r+best_h, best_c:best_c+best_w] = True
+                
+        masks.append(mask.flatten())
+    return torch.stack(masks).to(device)
 
 class ExpandToSquare(object):
     def __init__(self, background_color=(255, 255, 255)):
@@ -134,6 +168,11 @@ def train_mimic():
         else:
             print(f"Warning: Checkpoint not found at {resume_path}, starting from scratch!")
             
+    image_size = config.get('model', {}).get('image_size', 224)
+    patch_size = config.get('model', {}).get('patch_size', 14)
+    H_grid = image_size // patch_size
+    W_grid = image_size // patch_size
+
     for epoch in range(start_epoch, epochs):
         model.train()
         total_loss = 0
@@ -145,18 +184,50 @@ def train_mimic():
             feature_confidence = batch['feature_confidence'].to(device)
             
             optimizer.zero_grad()
-            outputs = model(images)
-            loss = feature_loss(outputs['feature_logits'], feature_targets, feature_mask, feature_confidence)
             
+            # FILIP Pass: Unmasked context encoder pass
+            outputs = model(images)
+            L_FILIP = feature_loss(outputs['feature_logits'], feature_targets, feature_mask, feature_confidence)
+            
+            if model.use_jepa:
+                mask = generate_batch_mask(images.shape[0], H_grid, W_grid, device)
+                prediction, target = model.forward_jepa(images, mask)
+                
+                prediction_norm = F.normalize(prediction, dim=-1)
+                target_norm = F.normalize(target, dim=-1).detach()
+                
+                # Smooth L1 loss only at masked locations
+                L_JEPA = F.smooth_l1_loss(prediction_norm[mask], target_norm[mask], reduction='none').sum(dim=-1).mean()
+                jepa_weight = config.get('model', {}).get('jepa_loss_weight', 0.3)
+                loss = L_FILIP + jepa_weight * L_JEPA
+            else:
+                loss = L_FILIP
+                
             loss.backward()
             optimizer.step()
             
+            if model.use_jepa:
+                model.update_target_encoder()
+                
             total_loss += loss.item()
             global_step += 1
-            pbar.set_postfix({'loss': loss.item()})
+            
+            if model.use_jepa:
+                pbar.set_postfix({'loss': loss.item(), 'filip': L_FILIP.item(), 'jepa': L_JEPA.item()})
+            else:
+                pbar.set_postfix({'loss': loss.item()})
             
             if use_wandb:
-                wandb.log({"loss/feature_step": loss.item()}, step=global_step)
+                log_dict = {
+                    "loss/total_step": loss.item(),
+                    "loss/filip_step": L_FILIP.item(),
+                }
+                if model.use_jepa:
+                    log_dict.update({
+                        "loss/jepa_step": L_JEPA.item(),
+                        "loss/weighted_jepa_step": (jepa_weight * L_JEPA).item()
+                    })
+                wandb.log(log_dict, step=global_step)
             
         avg_train_loss = total_loss / len(dataloader)
         print(f"Epoch {epoch+1} Average Train Loss: {avg_train_loss:.4f}")
@@ -164,6 +235,8 @@ def train_mimic():
         # Validation phase
         model.eval()
         val_loss = 0
+        val_filip_loss = 0
+        val_jepa_loss = 0
         all_preds = []
         all_targets = []
         all_masks = []
@@ -176,7 +249,24 @@ def train_mimic():
                 feature_confidence = batch['feature_confidence'].to(device)
                 
                 outputs = model(images)
-                loss = feature_loss(outputs['feature_logits'], feature_targets, feature_mask, feature_confidence)
+                L_FILIP = feature_loss(outputs['feature_logits'], feature_targets, feature_mask, feature_confidence)
+                
+                if model.use_jepa:
+                    mask = generate_batch_mask(images.shape[0], H_grid, W_grid, device)
+                    prediction, target = model.forward_jepa(images, mask)
+                    
+                    prediction_norm = F.normalize(prediction, dim=-1)
+                    target_norm = F.normalize(target, dim=-1)
+                    
+                    L_JEPA = F.smooth_l1_loss(prediction_norm[mask], target_norm[mask], reduction='none').sum(dim=-1).mean()
+                    jepa_weight = config.get('model', {}).get('jepa_loss_weight', 0.3)
+                    loss = L_FILIP + jepa_weight * L_JEPA
+                    
+                    val_jepa_loss += L_JEPA.item()
+                else:
+                    loss = L_FILIP
+                    
+                val_filip_loss += L_FILIP.item()
                 val_loss += loss.item()
                 
                 all_preds.append(outputs['feature_logits'].cpu())
@@ -184,6 +274,10 @@ def train_mimic():
                 all_masks.append(feature_mask.cpu())
                 
         val_loss /= len(val_dataloader)
+        val_filip_loss /= len(val_dataloader)
+        if model.use_jepa:
+            val_jepa_loss /= len(val_dataloader)
+            
         all_preds = torch.cat(all_preds, dim=0).numpy()
         all_targets = torch.cat(all_targets, dim=0).numpy()
         all_masks = torch.cat(all_masks, dim=0).numpy()
@@ -191,18 +285,22 @@ def train_mimic():
         from filip.utils.metrics import compute_multilabel_metrics
         metrics = compute_multilabel_metrics(all_targets, all_preds, all_masks)
         
-        print(f"Epoch {epoch+1} - Val Loss: {val_loss:.4f} | Macro AUC: {metrics['macro_auc']:.4f} | Micro AUC: {metrics['micro_auc']:.4f}")
+        print(f"Epoch {epoch+1} - Val Loss: {val_loss:.4f} | Val FILIP Loss: {val_filip_loss:.4f} | Macro AUC: {metrics['macro_auc']:.4f} | Micro AUC: {metrics['micro_auc']:.4f}")
         
         if use_wandb:
-            wandb.log({
-                "loss/feature": val_loss,
+            log_dict = {
+                "loss/total": val_loss,
+                "loss/filip": val_filip_loss,
                 "feature/macro_auc": metrics["macro_auc"],
                 "feature/micro_auc": metrics["micro_auc"],
                 "feature/macro_f1": metrics["macro_f1"],
                 "feature/micro_f1": metrics["micro_f1"],
                 "feature/valid_label_ratio": metrics["valid_label_ratio"],
                 "epoch": epoch + 1
-            }, step=global_step)
+            }
+            if model.use_jepa:
+                log_dict["loss/jepa"] = val_jepa_loss
+            wandb.log(log_dict, step=global_step)
             
         # Checkpoint saving
         is_best = False
@@ -244,9 +342,9 @@ def train_mimic():
                     print(f"Removed old checkpoint: {oldest}")
                 except Exception as e:
                     print(f"Error removing old checkpoint {oldest}: {e}")
-            
+                    
     if use_wandb:
         wandb.finish()
-
+        
 if __name__ == "__main__":
     train_mimic()

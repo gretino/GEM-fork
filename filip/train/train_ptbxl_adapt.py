@@ -13,7 +13,7 @@ from torchvision import transforms
 from filip.data.dataset import ECGImageDataset
 from filip.data.collator import ecg_collate_fn
 from filip.model.filip_ecg_model import FILIPECGModel
-from filip.model.losses import diagnosis_loss, feature_consistency_loss
+from filip.model.losses import diagnosis_loss, asymmetric_loss
 
 from PIL import Image
 
@@ -62,7 +62,8 @@ def train_ptbxl():
         )
     ])
     
-    dataset = ECGImageDataset(data_root=data_root, split='train', dataset_name='ptbxl', transform=transform)
+    train_split = config.get('training', {}).get('train_split', 'train')
+    dataset = ECGImageDataset(data_root=data_root, split=train_split, dataset_name='ptbxl', transform=transform)
     if args.train_pct < 100.0:
         import random
         rng = random.Random(42)
@@ -98,11 +99,6 @@ def train_ptbxl():
     else:
         print("Warning: Stage 1 checkpoint not specified, starting from scratch!")
         
-    frozen_model = copy.deepcopy(model)
-    frozen_model.eval()
-    for param in frozen_model.parameters():
-        param.requires_grad = False
-        
     freeze_backbone = config.get('training', {}).get('freeze_backbone', False)
     if freeze_backbone:
         print("Freezing all parameters except diagnosis_head (Linear Probe mode)...")
@@ -112,8 +108,6 @@ def train_ptbxl():
                 
     optimizer = torch.optim.AdamW(filter(lambda p: p.requires_grad, model.parameters()), lr=config['training']['learning_rate'])
     epochs = config['training']['epochs']
-    
-    lambda_consistency = config['loss'].get('feature_consistency_weight', 0.1)
     
     experiment_name = config.get('experiment_name', 'ptbxl_diagnosis_adapt')
     if args.out_dir:
@@ -197,26 +191,22 @@ def train_ptbxl():
             optimizer.zero_grad()
             outputs = model(images)
             
-            with torch.no_grad():
-                frozen_outputs = frozen_model(images)
-            
-            loss_diag = diagnosis_loss(outputs['diagnosis_logits'], diagnosis_targets, diagnosis_mask)
-            loss_consist = feature_consistency_loss(outputs['feature_logits'], frozen_outputs['feature_logits'])
-            
-            loss = loss_diag + lambda_consistency * loss_consist
+            use_asl = config.get('loss', {}).get('use_asl', False)
+            if use_asl:
+                loss = asymmetric_loss(outputs['diagnosis_logits'], diagnosis_targets, diagnosis_mask)
+            else:
+                loss = diagnosis_loss(outputs['diagnosis_logits'], diagnosis_targets, diagnosis_mask)
             
             loss.backward()
             optimizer.step()
             
             total_loss += loss.item()
             global_step += 1
-            pbar.set_postfix({'loss': loss.item(), 'diag': loss_diag.item(), 'consist': loss_consist.item()})
+            pbar.set_postfix({'loss': loss.item()})
             
             if use_wandb:
                 wandb.log({
-                    "loss/total_step": loss.item(),
-                    "loss/diagnosis_step": loss_diag.item(),
-                    "loss/feature_consistency_step": loss_consist.item()
+                    "loss/total_step": loss.item()
                 }, step=global_step)
             
         avg_train_loss = total_loss / len(dataloader)
@@ -225,8 +215,6 @@ def train_ptbxl():
         # Validation phase
         model.eval()
         val_loss = 0
-        val_loss_diag = 0
-        val_loss_consist = 0
         all_preds = []
         all_targets = []
         all_masks = []
@@ -238,23 +226,20 @@ def train_ptbxl():
                 diagnosis_mask = batch['diagnosis_mask'].to(device)
                 
                 outputs = model(images)
-                frozen_outputs = frozen_model(images)
                 
-                loss_diag = diagnosis_loss(outputs['diagnosis_logits'], diagnosis_targets, diagnosis_mask)
-                loss_consist = feature_consistency_loss(outputs['feature_logits'], frozen_outputs['feature_logits'])
-                loss = loss_diag + lambda_consistency * loss_consist
-                
+                use_asl = config.get('loss', {}).get('use_asl', False)
+                if use_asl:
+                    loss = asymmetric_loss(outputs['diagnosis_logits'], diagnosis_targets, diagnosis_mask)
+                else:
+                    loss = diagnosis_loss(outputs['diagnosis_logits'], diagnosis_targets, diagnosis_mask)
+                    
                 val_loss += loss.item()
-                val_loss_diag += loss_diag.item()
-                val_loss_consist += loss_consist.item()
                 
                 all_preds.append(outputs['diagnosis_logits'].cpu())
                 all_targets.append(diagnosis_targets.cpu())
                 all_masks.append(diagnosis_mask.cpu())
                 
         val_loss /= len(val_dataloader)
-        val_loss_diag /= len(val_dataloader)
-        val_loss_consist /= len(val_dataloader)
         
         all_preds = torch.cat(all_preds, dim=0).numpy()
         all_targets = torch.cat(all_targets, dim=0).numpy()
@@ -263,13 +248,11 @@ def train_ptbxl():
         from filip.utils.metrics import compute_diagnosis_metrics
         metrics = compute_diagnosis_metrics(all_targets, all_preds, all_masks)
         
-        print(f"Epoch {epoch+1} - Val Loss: {val_loss:.4f} | Diag Loss: {val_loss_diag:.4f} | Consist Loss: {val_loss_consist:.4f} | Macro AUC: {metrics['macro_auc']:.4f} | Micro AUC: {metrics['micro_auc']:.4f}")
+        print(f"Epoch {epoch+1} - Val Loss: {val_loss:.4f} | Macro AUC: {metrics['macro_auc']:.4f} | Micro AUC: {metrics['micro_auc']:.4f}")
         
         if use_wandb:
             wandb.log({
                 "loss/total": val_loss,
-                "loss/diagnosis": val_loss_diag,
-                "loss/feature_consistency": val_loss_consist,
                 "diagnosis/macro_auc": metrics["macro_auc"],
                 "diagnosis/micro_auc": metrics["micro_auc"],
                 "diagnosis/macro_f1": metrics["macro_f1"],

@@ -1,0 +1,26 @@
+experiment_name: ablation_vit_large_morphology
+dataset_name: mimic
+task: feature_pretrain
+data_config: FILIP-data.md
+resume_from_checkpoint: /outputs/filip/ablation_vit_large_patch14/checkpoints/best.pt
+
+model:
+  vision_encoder: openai/clip-vit-large-patch14
+  image_size: 224
+  patch_size: 14
+  use_feature_alignment: true
+  feature_pooling: topk
+  feature_topk: 8
+  feature_align_dim: 256
+  use_morphology: true
+
+loss:
+  feature_loss_weight: 1.0
+  morphology_loss_weight: 1.0
+
+training:
+  batch_size: 32
+  learning_rate: 1.0e-4
+  epochs: 15
+  mixed_precision: true
+  report_to: wandb
