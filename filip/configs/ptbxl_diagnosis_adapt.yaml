@@ -2,14 +2,14 @@ experiment_name: ptbxl_diagnosis_adapt
 dataset_name: ptbxl
 task: diagnosis_adapt
 data_config: FILIP-data.md
-stage1_checkpoint: /outputs/filip/mimic_feature_pretrain/checkpoints/best.pt
+stage1_checkpoint: /outputs/filip/mimic_report_pretrain/checkpoints/best.pt
 
 model:
   vision_encoder: openai/clip-vit-base-patch32
   image_size: 224
   patch_size: 32
-  use_feature_alignment: true
-  diagnosis_from_features: true
+  use_feature_alignment: false
+  diagnosis_from_features: false
   use_adapters: true
   adapter_type: lora
 

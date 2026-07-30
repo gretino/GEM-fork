@@ -4,6 +4,16 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+
+def report_alignment_loss(report_logits):
+    """Symmetric in-batch contrastive loss for matched ECG/report pairs."""
+    if report_logits.ndim != 2 or report_logits.shape[0] != report_logits.shape[1]:
+        raise ValueError("report_logits must be a square [batch, batch] tensor")
+    targets = torch.arange(report_logits.shape[0], device=report_logits.device)
+    image_to_text = F.cross_entropy(report_logits, targets)
+    text_to_image = F.cross_entropy(report_logits.transpose(0, 1), targets)
+    return 0.5 * (image_to_text + text_to_image)
+
 def feature_loss(feature_logits, feature_targets, feature_mask, feature_confidence=None):
     """
     Computes BCEWithLogits loss with masking.
@@ -87,4 +97,3 @@ def masked_mse_loss(preds, targets, mask):
     masked_loss = raw_loss * mask
     
     return masked_loss.sum() / mask.sum().clamp_min(1.0)
-

@@ -1,5 +1,12 @@
 # Running the FILIP Experiment
 
+Stage 1 aligns ECG image patches directly with the content tokens in each raw
+MIMIC report. It uses in-batch report negatives and runs the JEPA masked-latent
+objective alongside report alignment; the derived 20-class feature labels are
+not required by the default pretraining configuration. Stage 2 loads the
+resulting vision backbone and adapts its pooled representation to downstream
+diagnosis labels.
+
 This guide explains how to prepare the data and run the newly implemented FILIP experiment architecture.
 
 ## 0. Data Processing Pipeline (MIMIC-IV-ECG)
@@ -80,7 +87,8 @@ tail -f filip/logs/stage1.log
 
 ## 4. Stage 2 (PTB-XL Adaptation)
 
-Once Stage 1 finishes, it will save a `best.pt` checkpoint to `outputs/filip/[experiment_name]/checkpoints/best.pt`.
+Once Stage 1 finishes, it will save a `best.pt` checkpoint to
+`outputs/filip/mimic_report_pretrain/checkpoints/best.pt`.
 
 Before training Stage 2, you must prepare the PTB-XL dataset images and split files:
 
@@ -98,6 +106,20 @@ To start Stage 2 training in the background, run:
 ```bash
 nohup bash filip/scripts/train_ptbxl_adapt.sh > filip/logs/stage2.log 2>&1 &
 ```
+
+The existing class-head configurations remain supported. To adapt against
+diagnosis text instead, use the text-prompt configuration; it scores every ECG
+against every diagnosis prompt and applies the same masked multilabel loss:
+
+```bash
+bash filip/scripts/train_ptbxl_adapt.sh \
+  -c filip/configs/ptbxl_diagnosis_text_adapt.yaml
+```
+
+`filip/eval/text_alignment_visualizer.ipynb` loads either a Stage 1 report
+checkpoint or a Stage 2 text-diagnosis checkpoint. Its setup cell accepts the
+checkpoint, image, candidate text, and selected token/phrase, then plots text
+likelihoods and the corresponding patch-alignment heatmap.
 
 # 1. Train on CSN folds
 bash filip/scripts/train_ptbxl_adapt.sh -c filip/configs/csn_diagnosis_adapt.yaml -g <gpu_id>
