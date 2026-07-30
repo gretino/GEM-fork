@@ -1,24 +1,19 @@
-experiment_name: mimic_report_pretrain
+experiment_name: mimic_feature_pretrain
 dataset_name: mimic
-task: report_pretrain
+task: feature_pretrain
 data_config: FILIP-data.md
 
 model:
   vision_encoder: openai/clip-vit-base-patch32
   image_size: 224
   patch_size: 32
-  use_feature_alignment: false
-  use_report_alignment: true
-  text_encoder: openai/clip-vit-base-patch32
-  text_max_length: 77
-  report_topk: 8
-  report_align_dim: 256
-  use_jepa: true
-  jepa_predictor_dim: 768
-  jepa_loss_weight: 0.3
+  use_feature_alignment: true
+  feature_pooling: topk
+  feature_topk: 8
+  feature_align_dim: 256
 
 loss:
-  report_alignment_weight: 1.0
+  feature_loss_weight: 1.0
 
 training:
   batch_size: 32

@@ -1,11 +1,10 @@
 # Running the FILIP Experiment
 
-Stage 1 aligns ECG image patches directly with the content tokens in each raw
-MIMIC report. It uses in-batch report negatives and runs the JEPA masked-latent
-objective alongside report alignment; the derived 20-class feature labels are
-not required by the default pretraining configuration. Stage 2 loads the
-resulting vision backbone and adapts its pooled representation to downstream
-diagnosis labels.
+The original feature-label and class-head configurations remain unchanged. An
+alternative two-stage path aligns ECG patches with raw MIMIC report tokens and
+then adapts those representations against downstream diagnosis text. The
+report-alignment path uses separate configuration files so existing experiments
+continue to run with their original behavior.
 
 This guide explains how to prepare the data and run the newly implemented FILIP experiment architecture.
 
@@ -45,7 +44,7 @@ Both stages are controlled completely by their respective YAML files in `/filip/
 
 If you want to do a **trial run** (to ensure the model fits in VRAM and no bugs exist), lower the `epochs` and `batch_size`:
 
-1. Open `filip/configs/mimic_feature_pretrain.yaml`.
+1. Open `filip/configs/mimic_report_alignment_pretrain.yaml`.
 2. Edit the `training` section:
    ```yaml
    training:
@@ -54,7 +53,14 @@ If you want to do a **trial run** (to ensure the model fits in VRAM and no bugs 
      epochs: 1           # 1 epoch for testing
      mixed_precision: true
    ```
-3. Run the script: `bash filip/scripts/train_mimic_feature.sh`
+3. Run the report-alignment configuration:
+   ```bash
+   bash filip/scripts/train_mimic_feature.sh \
+     -c filip/configs/mimic_report_alignment_pretrain.yaml
+   ```
+
+Running `bash filip/scripts/train_mimic_feature.sh` without `-c` continues to
+use the original `mimic_feature_pretrain.yaml` feature-label configuration.
 
 For a **full run**, simply change `batch_size` back to your GPU's capacity (e.g., 32 or 64) and set `epochs` to your desired length (e.g., 10).
 
@@ -77,18 +83,20 @@ Because the full dataset is large, you should use `nohup` to run the bash script
 
 ```bash
 mkdir -p filip/logs
-nohup bash filip/scripts/train_mimic_feature.sh > filip/logs/stage1.log 2>&1 &
+nohup bash filip/scripts/train_mimic_feature.sh \
+  -c filip/configs/mimic_report_alignment_pretrain.yaml \
+  > filip/logs/stage1-report-alignment.log 2>&1 &
 ```
 
 You can view the progress anytime with:
 ```bash
-tail -f filip/logs/stage1.log
+tail -f filip/logs/stage1-report-alignment.log
 ```
 
 ## 4. Stage 2 (PTB-XL Adaptation)
 
 Once Stage 1 finishes, it will save a `best.pt` checkpoint to
-`outputs/filip/mimic_report_pretrain/checkpoints/best.pt`.
+`outputs/filip/mimic_report_alignment_pretrain/checkpoints/best.pt`.
 
 Before training Stage 2, you must prepare the PTB-XL dataset images and split files:
 
@@ -100,8 +108,9 @@ bash scripts/generate_ecg_images.sh
 PYTHONPATH=. python filip/data_processing/prepare_ptbxl.py
 ```
 
-The Stage 2 config (`filip/configs/ptbxl_diagnosis_adapt.yaml`) is already wired to look for the Stage 1 pretrained checkpoint.
-To start Stage 2 training in the background, run:
+The original Stage 2 config (`filip/configs/ptbxl_diagnosis_adapt.yaml`) remains
+wired to the original feature-pretraining checkpoint. To run that class-head
+baseline, use:
 
 ```bash
 nohup bash filip/scripts/train_ptbxl_adapt.sh > filip/logs/stage2.log 2>&1 &

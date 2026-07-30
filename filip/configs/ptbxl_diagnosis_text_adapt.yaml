@@ -3,7 +3,7 @@ dataset_name: ptbxl
 task: diagnosis_text_adapt
 data_config: FILIP-data.md
 data_root: data/ptb-xl
-stage1_checkpoint: /outputs/filip/mimic_report_pretrain/checkpoints/best.pt
+stage1_checkpoint: /outputs/filip/mimic_report_alignment_pretrain/checkpoints/best.pt
 
 model:
   vision_encoder: openai/clip-vit-base-patch32
