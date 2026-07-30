@@ -15,6 +15,7 @@ results/
 !**/alpaca-data-conversation.json
 /data/
 outputs/
+scratch_test/*
 # Editor
 .idea
 *.swp
