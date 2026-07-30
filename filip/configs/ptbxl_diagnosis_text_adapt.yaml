@@ -1,0 +1,44 @@
+experiment_name: ptbxl_diagnosis_text_adapt
+dataset_name: ptbxl
+task: diagnosis_text_adapt
+data_config: FILIP-data.md
+data_root: data/ptb-xl
+stage1_checkpoint: /outputs/filip/mimic_report_alignment_pretrain/checkpoints/best.pt
+
+model:
+  vision_encoder: openai/clip-vit-base-patch32
+  text_encoder: openai/clip-vit-base-patch32
+  image_size: 224
+  patch_size: 32
+  use_feature_alignment: false
+  use_report_alignment: true
+  report_align_dim: 256
+  report_topk: 8
+  text_max_length: 77
+  diagnosis_mode: text_prompts
+  diagnosis_from_features: false
+  num_diagnosis: 5
+
+text_diagnosis:
+  freeze_text_encoder: true
+  freeze_text_projection: true
+  default_template: "an electrocardiogram showing {label}"
+  class_prompts:
+    NORM: "a normal electrocardiogram"
+    MI: "an electrocardiogram showing myocardial infarction"
+    HYP: "an electrocardiogram showing cardiac hypertrophy"
+    CD: "an electrocardiogram showing a cardiac conduction disturbance"
+    STTC: "an electrocardiogram showing an ST segment or T wave abnormality"
+
+loss:
+  diagnosis_loss_weight: 1.0
+  use_asl: false
+
+training:
+  batch_size: 32
+  learning_rate: 3.0e-5
+  head_lr_scale: 1.0
+  weight_decay: 0.01
+  epochs: 10
+  mixed_precision: true
+  report_to: wandb

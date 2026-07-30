@@ -17,6 +17,44 @@ from filip.model.losses import diagnosis_loss, asymmetric_loss
 
 from PIL import Image
 
+
+DEFAULT_DIAGNOSIS_TEXT = {
+    "NORM": "a normal electrocardiogram",
+    "MI": "an electrocardiogram showing myocardial infarction",
+    "HYP": "an electrocardiogram showing cardiac hypertrophy",
+    "CD": "an electrocardiogram showing a cardiac conduction disturbance",
+    "STTC": "an electrocardiogram showing an ST segment or T wave abnormality",
+}
+
+
+def build_diagnosis_prompts(diagnosis_list, config):
+    """Build one report-like prompt per downstream label, preserving label order."""
+    configured = config.get('text_diagnosis', {}).get('class_prompts', {})
+    template = config.get('text_diagnosis', {}).get(
+        'default_template', 'an electrocardiogram showing {label}'
+    )
+    return [configured.get(label, DEFAULT_DIAGNOSIS_TEXT.get(label, template.format(label=label)))
+            for label in diagnosis_list]
+
+
+def tokenize_prompts(tokenizer, prompts, config, device):
+    encoded = tokenizer(
+        prompts,
+        padding=True,
+        truncation=True,
+        max_length=config.get('model', {}).get('text_max_length', 77),
+        return_special_tokens_mask=True,
+        return_tensors='pt',
+    )
+    content_mask = encoded['attention_mask'].bool() & ~encoded.pop('special_tokens_mask').bool()
+    if not content_mask.any(dim=1).all():
+        raise ValueError("Every diagnosis prompt must contain at least one content token")
+    return {
+        'input_ids': encoded['input_ids'].to(device),
+        'attention_mask': encoded['attention_mask'].to(device),
+        'content_mask': content_mask.to(device),
+    }
+
 class ExpandToSquare(object):
     def __init__(self, background_color=(255, 255, 255)):
         self.background_color = background_color
@@ -77,6 +115,10 @@ def train_ptbxl():
     val_dataloader = DataLoader(val_dataset, batch_size=config['training']['batch_size'], shuffle=False, collate_fn=ecg_collate_fn, num_workers=4)
     
     model = FILIPECGModel(config).to(device)
+    diagnosis_mode = config.get('model', {}).get('diagnosis_mode', 'class_head')
+    use_text_diagnosis = diagnosis_mode == 'text_prompts'
+    if use_text_diagnosis and not model.use_report_alignment:
+        raise ValueError("diagnosis_mode=text_prompts requires use_report_alignment=true")
     stage1_ckpt_path = config.get('stage1_checkpoint')
     if stage1_ckpt_path:
         if stage1_ckpt_path.startswith("/outputs") and not (os.path.exists("/outputs") and os.access("/outputs", os.W_OK)):
@@ -98,11 +140,34 @@ def train_ptbxl():
             print(f"Warning: Stage 1 checkpoint not found at {stage1_ckpt_path}, starting from scratch!")
     else:
         print("Warning: Stage 1 checkpoint not specified, starting from scratch!")
+
+    prompt_inputs = None
+    diagnosis_prompts = None
+    if use_text_diagnosis:
+        from transformers import AutoTokenizer
+
+        diagnosis_prompts = build_diagnosis_prompts(dataset.diagnosis_list, config)
+        tokenizer = AutoTokenizer.from_pretrained(config['model']['text_encoder'])
+        prompt_inputs = tokenize_prompts(tokenizer, diagnosis_prompts, config, device)
+        if config.get('text_diagnosis', {}).get('freeze_text_encoder', True):
+            for parameter in model.text_encoder.parameters():
+                parameter.requires_grad = False
+        if config.get('text_diagnosis', {}).get('freeze_text_projection', True):
+            for parameter in model.report_alignment_head.text_projection.parameters():
+                parameter.requires_grad = False
+        # This head is intentionally retained for class-head compatibility but
+        # is not part of text-prompt adaptation.
+        for parameter in model.diagnosis_head.parameters():
+            parameter.requires_grad = False
         
     freeze_backbone = config.get('training', {}).get('freeze_backbone', False)
     unfreeze_last_n = config.get('training', {}).get('unfreeze_last_n_layers', None)
     
-    if freeze_backbone:
+    if freeze_backbone and use_text_diagnosis:
+        print("Freezing the vision encoder; adapting only the report alignment projection...")
+        for parameter in model.vision_encoder.parameters():
+            parameter.requires_grad = False
+    elif freeze_backbone:
         print("Freezing all parameters except diagnosis_head (Linear Probe mode)...")
         for name, param in model.named_parameters():
             if "diagnosis_head" not in name:
@@ -197,7 +262,8 @@ def train_ptbxl():
             print(f"Warning: Could not initialize Wandb ({e}). Logging to console only.")
             use_wandb = False
             
-    print("Starting Stage 2: PTB-XL Diagnosis Adaptation")
+    mode_name = "Text-Prompt" if use_text_diagnosis else "Class-Head"
+    print(f"Starting Stage 2: PTB-XL {mode_name} Diagnosis Adaptation")
     global_step = 0
     best_macro_auc = -1.0
     start_epoch = 0
@@ -244,7 +310,10 @@ def train_ptbxl():
             diagnosis_mask = batch['diagnosis_mask'].to(device)
             
             optimizer.zero_grad()
-            outputs = model(images)
+            if use_text_diagnosis:
+                outputs = model.forward_text_prompts(images, **prompt_inputs)
+            else:
+                outputs = model(images)
             
             use_asl = config.get('loss', {}).get('use_asl', False)
             if use_asl:
@@ -280,7 +349,10 @@ def train_ptbxl():
                 diagnosis_targets = batch['diagnosis_targets'].to(device)
                 diagnosis_mask = batch['diagnosis_mask'].to(device)
                 
-                outputs = model(images)
+                if use_text_diagnosis:
+                    outputs = model.forward_text_prompts(images, **prompt_inputs)
+                else:
+                    outputs = model(images)
                 
                 use_asl = config.get('loss', {}).get('use_asl', False)
                 if use_asl:
@@ -330,7 +402,9 @@ def train_ptbxl():
             "epoch": epoch + 1,
             "global_step": global_step,
             "best_metric": best_macro_auc,
-            "stage1_checkpoint_path": stage1_ckpt_path
+            "stage1_checkpoint_path": stage1_ckpt_path,
+            "diagnosis_mode": diagnosis_mode,
+            "diagnosis_prompts": diagnosis_prompts,
         }
         
         # Save best.pt whenever it is best

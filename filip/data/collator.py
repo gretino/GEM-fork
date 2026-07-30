@@ -8,7 +8,8 @@ def ecg_collate_fn(batch):
     
     collated = {
         "images": images,
-        "sample_ids": sample_ids
+        "sample_ids": sample_ids,
+        "report_texts": [item.get("report_text", "") for item in batch],
     }
     
     # Feature Targets

@@ -12,12 +12,32 @@ from torchvision import transforms
 from filip.data.dataset import ECGImageDataset
 from filip.data.collator import ecg_collate_fn
 from filip.model.filip_ecg_model import FILIPECGModel
-from filip.model.losses import feature_loss
+from filip.model.losses import feature_loss, report_alignment_loss
 import numpy as np
 import torch.nn.functional as F
 import random
 
 from PIL import Image
+
+
+def tokenize_reports(tokenizer, reports, config, device):
+    """Tokenize raw reports and distinguish content from padding/special tokens."""
+    encoded = tokenizer(
+        reports,
+        padding=True,
+        truncation=True,
+        max_length=config.get('model', {}).get('text_max_length', 77),
+        return_special_tokens_mask=True,
+        return_tensors='pt',
+    )
+    content_mask = encoded['attention_mask'].bool() & ~encoded.pop('special_tokens_mask').bool()
+    if not content_mask.any(dim=1).all():
+        raise ValueError("Every MIMIC sample must contain non-empty report text")
+    return {
+        'input_ids': encoded['input_ids'].to(device),
+        'attention_mask': encoded['attention_mask'].to(device),
+        'content_mask': content_mask.to(device),
+    }
 
 def generate_batch_mask(batch_size, H_grid, W_grid, device):
     masks = []
@@ -93,13 +113,21 @@ def train_mimic():
         )
     ])
     
+    report_pretraining = config.get('model', {}).get('use_report_alignment', False)
     dataset = ECGImageDataset(data_root=data_root, split='train', dataset_name='mimic', transform=transform)
-    dataloader = DataLoader(dataset, batch_size=config['training']['batch_size'], shuffle=True, collate_fn=ecg_collate_fn, num_workers=4)
+    dataloader = DataLoader(dataset, batch_size=config['training']['batch_size'], shuffle=True, collate_fn=ecg_collate_fn, num_workers=4, drop_last=report_pretraining)
     
     val_dataset = ECGImageDataset(data_root=data_root, split='val', dataset_name='mimic', transform=transform)
-    val_dataloader = DataLoader(val_dataset, batch_size=config['training']['batch_size'], shuffle=False, collate_fn=ecg_collate_fn, num_workers=4)
+    val_dataloader = DataLoader(val_dataset, batch_size=config['training']['batch_size'], shuffle=False, collate_fn=ecg_collate_fn, num_workers=4, drop_last=report_pretraining)
     
     model = FILIPECGModel(config).to(device)
+    tokenizer = None
+    if model.use_report_alignment:
+        from transformers import AutoTokenizer
+        text_model_name = config.get('model', {}).get(
+            'text_encoder', config.get('model', {}).get('vision_encoder')
+        )
+        tokenizer = AutoTokenizer.from_pretrained(text_model_name)
     optimizer = torch.optim.AdamW(model.parameters(), lr=config['training']['learning_rate'])
     
     epochs = config['training']['epochs']
@@ -131,9 +159,10 @@ def train_mimic():
             print(f"Warning: Could not initialize Wandb ({e}). Logging to console only.")
             use_wandb = False
             
-    print("Starting Stage 1: MIMIC Feature Pretraining")
+    stage1_target = "Raw Report" if model.use_report_alignment else "Feature"
+    print(f"Starting Stage 1: MIMIC {stage1_target} Pretraining")
     global_step = 0
-    best_macro_auc = -1.0
+    best_metric = -float('inf')
     start_epoch = 0
     
     resume_path = args.resume_from or config.get('resume_from_checkpoint')
@@ -164,7 +193,7 @@ def train_mimic():
                     
             start_epoch = ckpt.get('epoch', 0)
             global_step = ckpt.get('global_step', 0)
-            best_macro_auc = ckpt.get('best_metric', -1.0)
+            best_metric = ckpt.get('best_metric', -float('inf'))
         else:
             print(f"Warning: Checkpoint not found at {resume_path}, starting from scratch!")
             
@@ -172,6 +201,9 @@ def train_mimic():
     patch_size = config.get('model', {}).get('patch_size', 14)
     H_grid = image_size // patch_size
     W_grid = image_size // patch_size
+    filip_weight = config.get('loss', {}).get(
+        'report_alignment_weight' if model.use_report_alignment else 'feature_loss_weight', 1.0
+    )
 
     for epoch in range(start_epoch, epochs):
         model.train()
@@ -179,15 +211,19 @@ def train_mimic():
         pbar = tqdm(dataloader, desc=f"Epoch {epoch+1}/{epochs}")
         for batch in pbar:
             images = batch['images'].to(device)
-            feature_targets = batch['feature_targets'].to(device)
-            feature_mask = batch['feature_mask'].to(device)
-            feature_confidence = batch['feature_confidence'].to(device)
-            
             optimizer.zero_grad()
             
             # FILIP Pass: Unmasked context encoder pass
-            outputs = model(images)
-            L_FILIP = feature_loss(outputs['feature_logits'], feature_targets, feature_mask, feature_confidence)
+            if model.use_report_alignment:
+                text_batch = tokenize_reports(tokenizer, batch['report_texts'], config, device)
+                outputs = model(images, **text_batch)
+                L_FILIP = report_alignment_loss(outputs['report_logits'])
+            else:
+                feature_targets = batch['feature_targets'].to(device)
+                feature_mask = batch['feature_mask'].to(device)
+                feature_confidence = batch['feature_confidence'].to(device)
+                outputs = model(images)
+                L_FILIP = feature_loss(outputs['feature_logits'], feature_targets, feature_mask, feature_confidence)
             
             if model.use_jepa:
                 mask = generate_batch_mask(images.shape[0], H_grid, W_grid, device)
@@ -199,9 +235,9 @@ def train_mimic():
                 # Smooth L1 loss only at masked locations
                 L_JEPA = F.smooth_l1_loss(prediction_norm[mask], target_norm[mask], reduction='none').sum(dim=-1).mean()
                 jepa_weight = config.get('model', {}).get('jepa_loss_weight', 0.3)
-                loss = L_FILIP + jepa_weight * L_JEPA
+                loss = filip_weight * L_FILIP + jepa_weight * L_JEPA
             else:
-                loss = L_FILIP
+                loss = filip_weight * L_FILIP
                 
             loss.backward()
             optimizer.step()
@@ -237,19 +273,21 @@ def train_mimic():
         val_loss = 0
         val_filip_loss = 0
         val_jepa_loss = 0
-        all_preds = []
-        all_targets = []
-        all_masks = []
+        all_preds, all_targets, all_masks = [], [], []
         
         with torch.no_grad():
             for batch in val_dataloader:
                 images = batch['images'].to(device)
-                feature_targets = batch['feature_targets'].to(device)
-                feature_mask = batch['feature_mask'].to(device)
-                feature_confidence = batch['feature_confidence'].to(device)
-                
-                outputs = model(images)
-                L_FILIP = feature_loss(outputs['feature_logits'], feature_targets, feature_mask, feature_confidence)
+                if model.use_report_alignment:
+                    text_batch = tokenize_reports(tokenizer, batch['report_texts'], config, device)
+                    outputs = model(images, **text_batch)
+                    L_FILIP = report_alignment_loss(outputs['report_logits'])
+                else:
+                    feature_targets = batch['feature_targets'].to(device)
+                    feature_mask = batch['feature_mask'].to(device)
+                    feature_confidence = batch['feature_confidence'].to(device)
+                    outputs = model(images)
+                    L_FILIP = feature_loss(outputs['feature_logits'], feature_targets, feature_mask, feature_confidence)
                 
                 if model.use_jepa:
                     mask = generate_batch_mask(images.shape[0], H_grid, W_grid, device)
@@ -260,52 +298,59 @@ def train_mimic():
                     
                     L_JEPA = F.smooth_l1_loss(prediction_norm[mask], target_norm[mask], reduction='none').sum(dim=-1).mean()
                     jepa_weight = config.get('model', {}).get('jepa_loss_weight', 0.3)
-                    loss = L_FILIP + jepa_weight * L_JEPA
+                    loss = filip_weight * L_FILIP + jepa_weight * L_JEPA
                     
                     val_jepa_loss += L_JEPA.item()
                 else:
-                    loss = L_FILIP
+                    loss = filip_weight * L_FILIP
                     
                 val_filip_loss += L_FILIP.item()
                 val_loss += loss.item()
                 
-                all_preds.append(outputs['feature_logits'].cpu())
-                all_targets.append(feature_targets.cpu())
-                all_masks.append(feature_mask.cpu())
+                if not model.use_report_alignment:
+                    all_preds.append(outputs['feature_logits'].cpu())
+                    all_targets.append(feature_targets.cpu())
+                    all_masks.append(feature_mask.cpu())
                 
         val_loss /= len(val_dataloader)
         val_filip_loss /= len(val_dataloader)
         if model.use_jepa:
             val_jepa_loss /= len(val_dataloader)
             
-        all_preds = torch.cat(all_preds, dim=0).numpy()
-        all_targets = torch.cat(all_targets, dim=0).numpy()
-        all_masks = torch.cat(all_masks, dim=0).numpy()
-        
-        from filip.utils.metrics import compute_multilabel_metrics
-        metrics = compute_multilabel_metrics(all_targets, all_preds, all_masks)
-        
-        print(f"Epoch {epoch+1} - Val Loss: {val_loss:.4f} | Val FILIP Loss: {val_filip_loss:.4f} | Macro AUC: {metrics['macro_auc']:.4f} | Micro AUC: {metrics['micro_auc']:.4f}")
+        if model.use_report_alignment:
+            current_metric = -val_filip_loss
+            print(f"Epoch {epoch+1} - Val Loss: {val_loss:.4f} | Val Report FILIP Loss: {val_filip_loss:.4f}")
+        else:
+            all_preds = torch.cat(all_preds, dim=0).numpy()
+            all_targets = torch.cat(all_targets, dim=0).numpy()
+            all_masks = torch.cat(all_masks, dim=0).numpy()
+            from filip.utils.metrics import compute_multilabel_metrics
+            metrics = compute_multilabel_metrics(all_targets, all_preds, all_masks)
+            current_metric = metrics['macro_auc']
+            print(f"Epoch {epoch+1} - Val Loss: {val_loss:.4f} | Val FILIP Loss: {val_filip_loss:.4f} | Macro AUC: {metrics['macro_auc']:.4f} | Micro AUC: {metrics['micro_auc']:.4f}")
         
         if use_wandb:
             log_dict = {
                 "loss/total": val_loss,
                 "loss/filip": val_filip_loss,
-                "feature/macro_auc": metrics["macro_auc"],
-                "feature/micro_auc": metrics["micro_auc"],
-                "feature/macro_f1": metrics["macro_f1"],
-                "feature/micro_f1": metrics["micro_f1"],
-                "feature/valid_label_ratio": metrics["valid_label_ratio"],
                 "epoch": epoch + 1
             }
+            if not model.use_report_alignment:
+                log_dict.update({
+                    "feature/macro_auc": metrics["macro_auc"],
+                    "feature/micro_auc": metrics["micro_auc"],
+                    "feature/macro_f1": metrics["macro_f1"],
+                    "feature/micro_f1": metrics["micro_f1"],
+                    "feature/valid_label_ratio": metrics["valid_label_ratio"],
+                })
             if model.use_jepa:
                 log_dict["loss/jepa"] = val_jepa_loss
             wandb.log(log_dict, step=global_step)
             
         # Checkpoint saving
         is_best = False
-        if metrics["macro_auc"] > best_macro_auc:
-            best_macro_auc = metrics["macro_auc"]
+        if current_metric > best_metric:
+            best_metric = current_metric
             is_best = True
             
         checkpoint = {
@@ -316,13 +361,15 @@ def train_mimic():
             "feature_vocab": dataset.feature_vocab,
             "epoch": epoch + 1,
             "global_step": global_step,
-            "best_metric": best_macro_auc
+            "best_metric": best_metric,
+            "alignment_target": "raw_report" if model.use_report_alignment else "feature_labels",
         }
         
         # Save best.pt whenever it is best
         if is_best:
             torch.save(checkpoint, os.path.join(out_dir, "best.pt"))
-            print(f"Saved new best model checkpoint (Val Macro AUC: {best_macro_auc:.4f})")
+            metric_name = "negative report loss" if model.use_report_alignment else "macro AUC"
+            print(f"Saved new best model checkpoint ({metric_name}: {best_metric:.4f})")
             
         # Save epoch checkpoint only every 2 epochs
         if (epoch + 1) % 2 == 0:

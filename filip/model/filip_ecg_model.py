@@ -5,6 +5,7 @@ import torch.nn as nn
 
 from filip.model.vision_encoder import FILIPVisionEncoder
 from filip.model.feature_alignment import FeatureAlignmentHead
+from filip.model.report_alignment import ReportAlignmentHead
 from filip.data.vocab import get_feature_vocab, get_diagnosis_vocab
 
 class FILIPECGModel(nn.Module):
@@ -28,6 +29,22 @@ class FILIPECGModel(nn.Module):
             patch_size=patch_size
         )
         self.hidden_size = self.vision_encoder.hidden_size
+
+        # Stage-1 raw-report alignment. The text encoder is used here rather
+        # than converting reports into the legacy 20-class target vocabulary.
+        self.use_report_alignment = config.get('model', {}).get('use_report_alignment', False)
+        if self.use_report_alignment:
+            from transformers import CLIPTextModel
+
+            text_model_name = config.get('model', {}).get('text_encoder', vision_model_name)
+            self.text_encoder = CLIPTextModel.from_pretrained(text_model_name)
+            text_hidden_size = self.text_encoder.config.hidden_size
+            self.report_alignment_head = ReportAlignmentHead(
+                image_hidden_size=self.hidden_size,
+                text_hidden_size=text_hidden_size,
+                align_dim=config.get('model', {}).get('report_align_dim', 256),
+                topk=config.get('model', {}).get('report_topk', 8),
+            )
         
         # Feature Alignment Head
         self.use_feature_alignment = config.get('model', {}).get('use_feature_alignment', True)
@@ -87,12 +104,23 @@ class FILIPECGModel(nn.Module):
             if predictor_dim != self.hidden_size:
                 self.predictor_out_proj = nn.Linear(predictor_dim, self.hidden_size)
 
-    def forward(self, images):
+    def forward(self, images, input_ids=None, attention_mask=None, content_mask=None):
         outputs = {}
         
         # 1. Vision Encoder
         patch_features = self.vision_encoder(images) # [B, P, H]
         outputs["patch_features"] = patch_features
+
+        if self.use_report_alignment and input_ids is not None:
+            text_outputs = self.text_encoder(input_ids=input_ids, attention_mask=attention_mask)
+            token_features = text_outputs.last_hidden_state
+            if content_mask is None:
+                content_mask = attention_mask
+            report_logits, patch_report_similarity = self.report_alignment_head(
+                patch_features, token_features, content_mask
+            )
+            outputs["report_logits"] = report_logits
+            outputs["patch_report_similarity"] = patch_report_similarity
         
         # 2. Feature Alignment
         if self.use_feature_alignment:
@@ -112,6 +140,29 @@ class FILIPECGModel(nn.Module):
             outputs["diagnosis_logits"] = diagnosis_logits
             
         return outputs
+
+    def forward_text_prompts(self, images, input_ids, attention_mask, content_mask=None):
+        """Score each ECG against each diagnosis/report prompt.
+
+        Unlike :meth:`forward`, image and text batch sizes may differ. This is
+        the downstream text-classifier path: ``B`` images by ``C`` prompts.
+        """
+        if not self.use_report_alignment:
+            raise RuntimeError("Text-prompt scoring requires use_report_alignment=true")
+        patch_features = self.vision_encoder(images)
+        token_features = self.text_encoder(
+            input_ids=input_ids, attention_mask=attention_mask
+        ).last_hidden_state
+        if content_mask is None:
+            content_mask = attention_mask
+        logits, similarities = self.report_alignment_head.score_prompts(
+            patch_features, token_features, content_mask
+        )
+        return {
+            "patch_features": patch_features,
+            "diagnosis_logits": logits,
+            "patch_prompt_similarity": similarities,
+        }
 
     @torch.no_grad()
     def update_target_encoder(self):

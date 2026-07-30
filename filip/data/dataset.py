@@ -75,6 +75,9 @@ class ECGImageDataset(Dataset):
         sample = {
             "images": image,
             "sample_ids": study_id,
+            # Keep the report as raw text. Tokenization belongs in the training
+            # loop so that it can follow the text encoder configured for a run.
+            "report_text": record.get("report_text", ""),
             "feature_targets": None,
             "feature_mask": None,
             "diagnosis_targets": None,
