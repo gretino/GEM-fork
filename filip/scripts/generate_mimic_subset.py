@@ -5,17 +5,24 @@ import argparse
 from tqdm import tqdm
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
-def process_record(record, raw_data_root, output_dir, ecg_gen_dir):
+def process_record(record, raw_data_roots, output_dir, ecg_gen_dir):
     # Skip if image already exists
     study_id = record.get('study_id', os.path.basename(record['path']))
     img_path = os.path.join(output_dir, f"{study_id}-0.png")
     if os.path.exists(img_path):
         return True
 
-    hea_path = os.path.join(raw_data_root, f"{record['path']}.hea")
-    dat_path = os.path.join(raw_data_root, f"{record['path']}.dat")
+    hea_path = None
+    dat_path = None
+    for root in raw_data_roots:
+        candidate_hea = os.path.join(root, f"{record['path']}.hea")
+        candidate_dat = os.path.join(root, f"{record['path']}.dat")
+        if os.path.exists(candidate_hea) and os.path.exists(candidate_dat):
+            hea_path = candidate_hea
+            dat_path = candidate_dat
+            break
     
-    if not os.path.exists(hea_path) or not os.path.exists(dat_path):
+    if hea_path is None or dat_path is None:
         return False
         
     cmd = [
@@ -38,7 +45,10 @@ def main():
     args = parser.parse_args()
 
     dataset_root = "/home/qfbqt/8TB/datasets/mimic-iv-ecg"
-    raw_data_root = "/home/qfbqt/8TB/blmcg/datasets/physionet.org.5/files/mimic-iv-ecg/1.0"
+    raw_data_roots = [
+        "/home/qfbqt/8TB/blmcg/datasets/physionet.org.5/files/mimic-iv-ecg/1.0",
+        "/home/qfbqt/8TB/blmcg/datasets/physionet.org/files/mimic-iv-ecg/1.0",
+    ]
     output_dir = os.path.join(dataset_root, "images")
     os.makedirs(output_dir, exist_ok=True)
 
@@ -59,7 +69,7 @@ def main():
     with ThreadPoolExecutor(max_workers=args.num_threads) as executor:
         # Submit all tasks
         futures = [
-            executor.submit(process_record, record, raw_data_root, output_dir, ecg_gen_dir) 
+            executor.submit(process_record, record, raw_data_roots, output_dir, ecg_gen_dir) 
             for record in records
         ]
         
