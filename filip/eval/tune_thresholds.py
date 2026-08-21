@@ -97,8 +97,10 @@ def tune_thresholds():
     
     model.eval()
 
+    dataset_name = config.get('dataset_name', 'ptbxl')
     print(f"Loading val dataset from {data_root} for tuning...")
-    val_dataset = ECGImageDataset(data_root=data_root, split='val', dataset_name='ptbxl', transform=transform)
+    val_dataset = ECGImageDataset(data_root=data_root, split='val', dataset_name=dataset_name, transform=transform)
+
     val_dataloader = DataLoader(val_dataset, batch_size=config.get('training', {}).get('batch_size', 32), shuffle=False, collate_fn=ecg_collate_fn, num_workers=4)
     
     val_preds, val_targets, val_masks = get_predictions(val_dataloader, model, device)

@@ -1,0 +1,29 @@
+experiment_name: csn_report_align_adapt
+dataset_name: csn
+task: diagnosis_adapt
+data_config: FILIP-data.md
+data_root: data/csn_verified/
+stage1_checkpoint: outputs/filip/mimic_report_alignment_pretrain/checkpoints/best.pt
+
+model:
+  vision_encoder: openai/clip-vit-base-patch32
+  image_size: 224
+  patch_size: 32
+  use_feature_alignment: false
+  use_report_alignment: true
+  text_encoder: openai/clip-vit-base-patch32
+  text_max_length: 77
+  diagnosis_mode: class_head
+  use_adapters: true
+  adapter_type: lora
+  num_diagnosis: 38
+
+loss:
+  diagnosis_loss_weight: 1.0
+
+training:
+  batch_size: 32
+  learning_rate: 5.0e-5
+  epochs: 10
+  mixed_precision: true
+  report_to: wandb

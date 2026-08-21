@@ -76,7 +76,7 @@ def train_ptbxl():
     parser = argparse.ArgumentParser()
     parser.add_argument('--config', type=str, default='filip/configs/ptbxl_diagnosis_adapt.yaml')
     parser.add_argument('--resume_from', type=str, default=None, help='Path to checkpoint to resume training from')
-    parser.add_argument('--train_pct', type=float, default=100.0, help='Percentage of training data to use')
+    parser.add_argument('--train_pct', '--data_ratio', type=float, default=100.0, dest='train_pct', help='Percentage of training data to use')
     parser.add_argument('--out_dir', type=str, default=None, help='Output directory for checkpoints')
     args = parser.parse_args()
     
@@ -100,8 +100,9 @@ def train_ptbxl():
         )
     ])
     
+    dataset_name = config.get('dataset_name', 'ptbxl')
     train_split = config.get('training', {}).get('train_split', 'train')
-    dataset = ECGImageDataset(data_root=data_root, split=train_split, dataset_name='ptbxl', transform=transform)
+    dataset = ECGImageDataset(data_root=data_root, split=train_split, dataset_name=dataset_name, transform=transform)
     if args.train_pct < 100.0:
         import random
         rng = random.Random(42)
@@ -111,8 +112,13 @@ def train_ptbxl():
         
     dataloader = DataLoader(dataset, batch_size=config['training']['batch_size'], shuffle=True, collate_fn=ecg_collate_fn, num_workers=4)
     
-    val_dataset = ECGImageDataset(data_root=data_root, split='val', dataset_name='ptbxl', transform=transform)
+    val_dataset = ECGImageDataset(data_root=data_root, split='val', dataset_name=dataset_name, transform=transform)
+
     val_dataloader = DataLoader(val_dataset, batch_size=config['training']['batch_size'], shuffle=False, collate_fn=ecg_collate_fn, num_workers=4)
+    
+    num_ds_classes = len(dataset.diagnosis_list)
+    config['model']['num_classes'] = num_ds_classes
+    config['model']['num_diagnosis'] = num_ds_classes
     
     model = FILIPECGModel(config).to(device)
     diagnosis_mode = config.get('model', {}).get('diagnosis_mode', 'class_head')
@@ -229,12 +235,11 @@ def train_ptbxl():
     epochs = config['training']['epochs']
     
     experiment_name = config.get('experiment_name', 'ptbxl_diagnosis_adapt')
+    pct_str = f"{int(args.train_pct)}" if args.train_pct.is_integer() else f"{args.train_pct}"
     if args.out_dir:
         out_dir = args.out_dir
     else:
-        out_dir = f"/outputs/filip/{experiment_name}/checkpoints"
-        if out_dir.startswith("/outputs") and not (os.path.exists("/outputs") and os.access("/outputs", os.W_OK)):
-            out_dir = out_dir.lstrip("/")
+        out_dir = f"outputs/filip/{experiment_name}_{pct_str}"
     os.makedirs(out_dir, exist_ok=True)
     
     use_wandb = False
@@ -263,12 +268,16 @@ def train_ptbxl():
             use_wandb = False
             
     mode_name = "Text-Prompt" if use_text_diagnosis else "Class-Head"
-    print(f"Starting Stage 2: PTB-XL {mode_name} Diagnosis Adaptation")
+    dataset_display = config.get('dataset_name', 'ptbxl').upper()
+    print(f"Starting Stage 2: {dataset_display} {mode_name} Diagnosis Adaptation")
+
     global_step = 0
     best_macro_auc = -1.0
     start_epoch = 0
     
     resume_path = args.resume_from or config.get('resume_from_checkpoint')
+    if not resume_path and os.path.exists(os.path.join(out_dir, "latest.pt")):
+        resume_path = os.path.join(out_dir, "latest.pt")
     if resume_path:
         if resume_path.startswith("/outputs") and not (os.path.exists("/outputs") and os.access("/outputs", os.W_OK)):
             resume_path = resume_path.lstrip("/")

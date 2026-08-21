@@ -17,7 +17,7 @@ class FILIPECGModel(nn.Module):
         _, self.diagnosis_list = get_diagnosis_vocab()
         
         self.num_features = len(self.feature_list)
-        self.num_diagnosis = config.get('model', {}).get('num_diagnosis', len(self.diagnosis_list))
+        self.num_diagnosis = config.get('model', {}).get('num_classes', config.get('model', {}).get('num_diagnosis', len(self.diagnosis_list)))
         
         # Vision Encoder
         vision_model_name = config.get('model', {}).get('vision_encoder', 'openai/clip-vit-base-patch32')

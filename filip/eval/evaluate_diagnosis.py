@@ -100,8 +100,10 @@ def evaluate_diagnosis():
     
     model.eval()
 
+    dataset_name = config.get('dataset_name', 'ptbxl')
     print(f"Loading {args.split} dataset from {data_root} for evaluation...")
-    dataset = ECGImageDataset(data_root=data_root, split=args.split, dataset_name='ptbxl', transform=transform)
+    dataset = ECGImageDataset(data_root=data_root, split=args.split, dataset_name=dataset_name, transform=transform)
+
     dataloader = DataLoader(dataset, batch_size=config.get('training', {}).get('batch_size', 32), shuffle=False, collate_fn=ecg_collate_fn, num_workers=4)
 
     best_thresholds = np.full(len(dataset.diagnosis_list), 0.5)

@@ -85,12 +85,17 @@ def run_single_file_wrapper(args, filename, header, original_output_dir):
 
     import copy
     args_copy = copy.deepcopy(args)
-    # 为每个文件设置独立参数
     args_copy.input_file = os.path.join(args_copy.input_directory, filename)
-    args_copy.header_file = os.path.join(args_copy.input_directory, header)
-    args_copy.start_index = -1
+    args_copy.header_file = os.path.splitext(os.path.join(args_copy.input_directory, header))[0]
+
+    args_copy.start_index = getattr(args, 'start_index', 0)
     args_copy.output_directory = original_output_dir
     args_copy.encoding = encoding
+
+
+
+
+
 
     # 调用处理函数
     return run_single_file(args_copy)

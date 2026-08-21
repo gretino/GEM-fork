@@ -5,14 +5,57 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 
-def report_alignment_loss(report_logits):
-    """Symmetric in-batch contrastive loss for matched ECG/report pairs."""
-    if report_logits.ndim != 2 or report_logits.shape[0] != report_logits.shape[1]:
-        raise ValueError("report_logits must be a square [batch, batch] tensor")
-    targets = torch.arange(report_logits.shape[0], device=report_logits.device)
-    image_to_text = F.cross_entropy(report_logits, targets)
-    text_to_image = F.cross_entropy(report_logits.transpose(0, 1), targets)
-    return 0.5 * (image_to_text + text_to_image)
+def report_alignment_loss(report_logits, match_matrix=None):
+    """Symmetric in-batch contrastive loss for matched ECG/report pairs.
+
+    Supports optional match_matrix [B, B] boolean tensor for multi-positive contrastive loss (SupCon).
+    If match_matrix is provided, all in-batch items where match_matrix[i, j] is True are treated as valid positive matches.
+    """
+    if isinstance(report_logits, (tuple, list)):
+        i2t_logits, t2i_logits = report_logits
+        if i2t_logits.ndim != 2 or i2t_logits.shape[0] != i2t_logits.shape[1]:
+            raise ValueError("i2t_logits must be a square [batch, batch] tensor")
+        if t2i_logits.ndim != 2 or t2i_logits.shape[0] != t2i_logits.shape[1]:
+            raise ValueError("t2i_logits must be a square [batch, batch] tensor")
+
+        batch_size = i2t_logits.shape[0]
+        if match_matrix is None:
+            match_matrix = torch.eye(batch_size, dtype=torch.bool, device=i2t_logits.device)
+
+        pos_mask = match_matrix.float().to(i2t_logits.device)
+        pos_count_i2t = pos_mask.sum(dim=1).clamp_min(1.0)
+        pos_count_t2i = pos_mask.sum(dim=0).clamp_min(1.0)
+
+        log_prob_i2t = F.log_softmax(i2t_logits, dim=1)
+        loss_i2t = - (log_prob_i2t * pos_mask).sum(dim=1) / pos_count_i2t
+
+        log_prob_t2i = F.log_softmax(t2i_logits.transpose(0, 1), dim=1)
+        loss_t2i = - (log_prob_t2i * pos_mask.transpose(0, 1)).sum(dim=1) / pos_count_t2i
+
+        return 0.5 * (loss_i2t.mean() + loss_t2i.mean())
+
+    elif isinstance(report_logits, torch.Tensor):
+        if report_logits.ndim != 2 or report_logits.shape[0] != report_logits.shape[1]:
+            raise ValueError("report_logits must be a square [batch, batch] tensor")
+        batch_size = report_logits.shape[0]
+        if match_matrix is None:
+            match_matrix = torch.eye(batch_size, dtype=torch.bool, device=report_logits.device)
+
+        pos_mask = match_matrix.float().to(report_logits.device)
+        pos_count_i2t = pos_mask.sum(dim=1).clamp_min(1.0)
+        pos_count_t2i = pos_mask.sum(dim=0).clamp_min(1.0)
+
+        log_prob_i2t = F.log_softmax(report_logits, dim=1)
+        loss_i2t = - (log_prob_i2t * pos_mask).sum(dim=1) / pos_count_i2t
+
+        log_prob_t2i = F.log_softmax(report_logits.transpose(0, 1), dim=1)
+        loss_t2i = - (log_prob_t2i * pos_mask.transpose(0, 1)).sum(dim=1) / pos_count_t2i
+
+        return 0.5 * (loss_i2t.mean() + loss_t2i.mean())
+    else:
+        raise TypeError(f"Unsupported type for report_logits: {type(report_logits)}")
+
+
 
 def feature_loss(feature_logits, feature_targets, feature_mask, feature_confidence=None):
     """

@@ -1,0 +1,30 @@
+experiment_name: vit_large_jepa_ptbxl_super_report_align_adapt
+dataset_name: ptbxl_super
+data_root: data/ptbxl_super_class/
+task: diagnosis_adapt
+data_config: FILIP-data.md
+stage1_checkpoint: outputs/filip/report_alignment_jepa_large_pretrain/checkpoints/best.pt
+
+model:
+  vision_encoder: openai/clip-vit-large-patch14
+  image_size: 224
+  patch_size: 14
+  use_feature_alignment: false
+  use_report_alignment: true
+  text_encoder: openai/clip-vit-large-patch14
+  text_max_length: 77
+  diagnosis_mode: class_head
+  use_adapters: true
+  adapter_type: lora
+  num_classes: 5
+  num_diagnosis: 5
+
+loss:
+  diagnosis_loss_weight: 1.0
+
+training:
+  batch_size: 32
+  learning_rate: 3.0e-5
+  epochs: 10
+  mixed_precision: true
+  report_to: wandb

@@ -4,8 +4,11 @@ import json
 import os
 import torch
 from torch.utils.data import Dataset
-from PIL import Image
+from PIL import Image, ImageFile
 from torchvision import transforms
+
+ImageFile.LOAD_TRUNCATED_IMAGES = True
+
 
 from filip.data.vocab import get_feature_vocab, get_diagnosis_vocab
 
@@ -24,6 +27,8 @@ class ECGImageDataset(Dataset):
         else:
             print(f"Warning: {records_path} not found.")
             self.records = []
+
+
             
         self.feature_vocab, self.feature_list = get_feature_vocab()
         self.diagnosis_vocab, self.diagnosis_list = get_diagnosis_vocab()
@@ -40,7 +45,7 @@ class ECGImageDataset(Dataset):
             if os.path.exists(morphology_path):
                 with open(morphology_path, 'r') as f:
                     self.morphology = json.load(f)
-        elif self.dataset_name == 'ptbxl':
+        elif self.dataset_name in ['ptbxl', 'ptbxl_sub', 'ptbxl_rhythm', 'ptbxl_form', 'ptbxl_super', 'cpsc2018', 'csn', 'georgia']:
             target_path = os.path.join(data_root, "diagnoses.json")
             if os.path.exists(target_path):
                 with open(target_path, 'r') as f:
@@ -49,6 +54,7 @@ class ECGImageDataset(Dataset):
                     first_key = list(self.targets.keys())[0]
                     self.diagnosis_list = list(self.targets[first_key].keys())
                     self.diagnosis_vocab = {diag: i for i, diag in enumerate(self.diagnosis_list)}
+
 
     def __len__(self):
         return len(self.records)
@@ -64,8 +70,12 @@ class ECGImageDataset(Dataset):
         try:
             image = Image.open(image_path).convert('RGB')
         except Exception as e:
-            # Fallback dummy image if missing (useful for testing when data is being regenerated)
-            image = Image.new('RGB', (224, 224), (255, 255, 255))
+            raise RuntimeError(
+                f"Failed to load ECG image for study_id={study_id} from path: {image_path}"
+            ) from e
+
+
+
             
         if self.transform:
             image = self.transform(image)
@@ -106,7 +116,7 @@ class ECGImageDataset(Dataset):
                 sample["feature_targets"] = feat_array
                 sample["feature_mask"] = feat_mask
                 
-            elif self.dataset_name == 'ptbxl':
+            elif self.dataset_name in ['ptbxl', 'ptbxl_sub', 'ptbxl_rhythm', 'ptbxl_form', 'ptbxl_super', 'cpsc2018', 'csn', 'georgia']:
                 # Diagnoses
                 diag_array = torch.zeros(len(self.diagnosis_list), dtype=torch.float32)
                 for i, diag in enumerate(self.diagnosis_list):
@@ -120,6 +130,7 @@ class ECGImageDataset(Dataset):
                 
                 sample["diagnosis_targets"] = diag_array
                 sample["diagnosis_mask"] = diag_mask
+
                 
         # Load morphology targets for mimic if available
         if self.dataset_name == 'mimic':
