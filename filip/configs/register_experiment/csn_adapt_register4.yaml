@@ -1,0 +1,31 @@
+experiment_name: vit_large_register4_csn_100
+dataset_name: csn
+data_root: data/csn_verified/
+task: diagnosis_adapt
+data_config: FILIP-data.md
+stage1_checkpoint: outputs/filip/mimic_report_alignment_vit_large_register4_sample/checkpoints/best.pt
+
+model:
+  vision_encoder: openai/clip-vit-large-patch14
+  image_size: 224
+  patch_size: 14
+  num_registers: 4
+  use_feature_alignment: false
+  use_report_alignment: true
+  text_encoder: openai/clip-vit-large-patch14
+  text_max_length: 77
+  diagnosis_mode: class_head
+  use_adapters: true
+  adapter_type: lora
+  num_classes: 38
+  num_diagnosis: 38
+
+loss:
+  diagnosis_loss_weight: 1.0
+
+training:
+  batch_size: 32
+  learning_rate: 3.0e-5
+  epochs: 10
+  mixed_precision: true
+  report_to: wandb

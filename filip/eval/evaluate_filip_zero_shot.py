@@ -31,19 +31,21 @@ def evaluate_zero_shot():
     parser.add_argument('--checkpoint', type=str, required=True, help='Path to FILIP report alignment checkpoint')
     parser.add_argument('--data_root', type=str, default='/home/qfbqt/8TB/datasets/ptb-xl/', help='Path to PTB-XL dataset')
     parser.add_argument('--split', type=str, default='test', help='Dataset split to evaluate on')
+    parser.add_argument('--use_lead_roi_mask', action='store_true', help='Restrict patch scoring to 12-lead ROI region (excluding white background margins)')
     args = parser.parse_args()
 
     with open(args.config, 'r') as f:
         config = yaml.safe_load(f)
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    print(f"=== FILIP Zero-Shot Prompt Evaluation on PTB-XL (Split: {args.split}) ===")
+    print(f"=== FILIP Zero-Shot Prompt Evaluation on PTB-XL (Split: {args.split}, ROI Mask: {args.use_lead_roi_mask}) ===")
 
     data_root = args.data_root
     if not os.path.exists(data_root):
         data_root = "data/ptb-xl"
 
     image_size = config.get('model', {}).get('image_size', 224)
+    patch_size = config.get('model', {}).get('patch_size', 14)
     transform = transforms.Compose([
         ExpandToSquare(background_color=(255, 255, 255)),
         transforms.Resize((image_size, image_size)),
@@ -53,6 +55,11 @@ def evaluate_zero_shot():
             std=[0.26862954, 0.26130258, 0.27577711]
         )
     ])
+
+    if args.use_lead_roi_mask:
+        from filip.visualization.diagnostic_utils import create_ecg_lead_roi_mask
+        roi_mask_2d = create_ecg_lead_roi_mask(image_size=image_size, patch_size=patch_size)
+        roi_mask_flat = torch.from_numpy(roi_mask_2d.flatten()).to(device)
 
     # Load Model & Tokenizer
     model = FILIPECGModel(config).to(device)
@@ -95,6 +102,9 @@ def evaluate_zero_shot():
         for batch in tqdm(dataloader, desc="Zero-Shot Scoring"):
             images = batch['images'].to(device)
             patch_features = model.vision_encoder(images) # [B, P, H_i]
+
+            if args.use_lead_roi_mask:
+                patch_features = patch_features[:, roi_mask_flat, :]
 
             # Compute FILIP score_prompts between B images and C class prompts
             logits, _ = model.report_alignment_head.score_prompts(patch_features, token_features, content_mask) # [B, C]

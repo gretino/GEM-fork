@@ -23,10 +23,12 @@ class FILIPECGModel(nn.Module):
         vision_model_name = config.get('model', {}).get('vision_encoder', 'openai/clip-vit-base-patch32')
         image_size = config.get('model', {}).get('image_size', 224)
         patch_size = config.get('model', {}).get('patch_size', 32)
+        num_registers = config.get('model', {}).get('num_registers', 0)
         self.vision_encoder = FILIPVisionEncoder(
             model_name=vision_model_name,
             image_size=image_size,
-            patch_size=patch_size
+            patch_size=patch_size,
+            num_registers=num_registers
         )
         self.hidden_size = self.vision_encoder.hidden_size
 

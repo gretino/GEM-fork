@@ -6,8 +6,9 @@ import torch.nn as nn
 from transformers import CLIPVisionConfig, CLIPVisionModel
 
 class FILIPVisionEncoder(nn.Module):
-    def __init__(self, model_name="openai/clip-vit-base-patch32", image_size=224, patch_size=32):
+    def __init__(self, model_name="openai/clip-vit-base-patch32", image_size=224, patch_size=32, num_registers=0):
         super().__init__()
+        self.num_registers = num_registers
         
         config = CLIPVisionConfig.from_pretrained(model_name)
         default_image_size = config.image_size
@@ -62,33 +63,61 @@ class FILIPVisionEncoder(nn.Module):
         
         self.mask_token = nn.Parameter(torch.zeros(self.hidden_size))
         nn.init.normal_(self.mask_token, std=0.02)
+
+        # Register tokens initialization
+        if self.num_registers > 0:
+            self.register_tokens = nn.Parameter(torch.zeros(1, self.num_registers, self.hidden_size))
+            nn.init.normal_(self.register_tokens, std=0.02)
+            print(f"Added {self.num_registers} learnable ViT register tokens to vision encoder.")
         
-    def forward(self, images, mask=None):
-        if mask is None:
-            # outputs.hidden_states is a tuple of all layer outputs if output_hidden_states=True
+    def forward(self, images, mask=None, return_register_tokens=False):
+        B = images.shape[0]
+        if self.num_registers == 0 and mask is None:
             outputs = self.encoder(images, output_hidden_states=True)
-            # Select the last hidden state
             last_hidden = outputs.hidden_states[-1]
-            # Drop the CLS token (index 0) to return only patch tokens
             patch_features = last_hidden[:, 1:, :] # [B, P, H]
             return patch_features
-        else:
-            # Masked forward pass
-            hidden_states = self.encoder.vision_model.embeddings(images)
-            mask_expanded = mask.unsqueeze(-1) # [B, P, 1]
+        
+        # Standard embeddings for CLS + spatial patches
+        hidden_states = self.encoder.vision_model.embeddings(images) # [B, 1 + P, H]
+
+        if mask is not None:
+            mask_expanded = mask.unsqueeze(-1)
             patch_embeds = hidden_states[:, 1:, :]
             patch_embeds = torch.where(mask_expanded, self.mask_token.to(patch_embeds.dtype), patch_embeds)
             hidden_states = torch.cat([hidden_states[:, :1, :], patch_embeds], dim=1)
-            
-            hidden_states = self.encoder.vision_model.pre_layrnorm(hidden_states)
-            encoder_outputs = self.encoder.vision_model.encoder(
-                inputs_embeds=hidden_states,
-                output_hidden_states=True,
-            )
-            last_hidden = encoder_outputs[0]
-            patch_features = last_hidden[:, 1:, :] # [B, P, H]
-            return patch_features
+
+        if self.num_registers > 0:
+            cls_embed = hidden_states[:, :1, :]      # [B, 1, H]
+            patch_embeds = hidden_states[:, 1:, :]   # [B, P, H]
+            reg_tokens = self.register_tokens.expand(B, -1, -1).to(hidden_states.dtype) # [B, num_registers, H]
+            hidden_states = torch.cat([cls_embed, reg_tokens, patch_embeds], dim=1) # [B, 1 + num_registers + P, H]
+
+        hidden_states = self.encoder.vision_model.pre_layrnorm(hidden_states)
+        encoder_outputs = self.encoder.vision_model.encoder(
+            inputs_embeds=hidden_states,
+            output_hidden_states=True,
+        )
+        last_hidden = encoder_outputs[0] # [B, 1 + num_registers + P, H]
+
+        if return_register_tokens and self.num_registers > 0:
+            reg_features = last_hidden[:, 1:1 + self.num_registers, :] # [B, num_registers, H]
+            patch_features = last_hidden[:, 1 + self.num_registers:, :] # [B, P, H]
+            return patch_features, reg_features
+
+        # Return ONLY real image patch tokens [B, P, H]
+        patch_features = last_hidden[:, 1 + self.num_registers:, :] # [B, P, H]
+        return patch_features
+
         
     @property
     def hidden_size(self):
         return self.encoder.config.hidden_size
+
+    @property
+    def image_size(self):
+        return self.encoder.config.image_size
+
+    @property
+    def patch_size(self):
+        return self.encoder.config.patch_size

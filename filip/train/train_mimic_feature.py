@@ -98,6 +98,9 @@ def create_optimizer(model, config, freeze_encoders=False):
             p.requires_grad = False
         for p in raw_model.text_encoder.parameters():
             p.requires_grad = False
+        if hasattr(raw_model.vision_encoder, 'register_tokens'):
+            raw_model.vision_encoder.register_tokens.requires_grad = True
+            print("Keep vision encoder register_tokens trainable during warmup.")
     else:
         print("Unfreezing vision and text encoders for end-to-end report alignment fine-tuning...")
         for p in raw_model.vision_encoder.parameters():
