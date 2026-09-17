@@ -10,6 +10,7 @@ skills-lock.json
 *.log.*
 *.txt
 *.jsonl
+*.png
 
 results/
 # Data

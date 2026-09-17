@@ -19,6 +19,32 @@ if PROJECT_ROOT not in sys.path:
 from filip.model.filip_ecg_model import FILIPECGModel
 from filip.data.dataset import ECGImageDataset
 
+SUBCLASS_DESCRIPTIONS = {
+    'AMI': 'anterior myocardial infarction',
+    'ALMI': 'anterolateral myocardial infarction',
+    'ASMI': 'anteroseptal myocardial infarction',
+    'ILMI': 'inferolateral myocardial infarction',
+    'IMI': 'inferior myocardial infarction',
+    'SEHYP': 'septal hypertrophy',
+    'CRBBB': 'complete right bundle branch block',
+    'WPW': 'Wolff-Parkinson-White syndrome',
+    'LAO/LAE': 'left atrial overload or enlargement',
+    'NORM': 'normal sinus rhythm',
+    'ISC': 'ischemic ST-T changes',
+    'AVB': 'atrioventricular block',
+    'RAO/RAE': 'right atrial overload or enlargement',
+    'LMI': 'lateral myocardial infarction',
+    'ISCI': 'ischemic infarction',
+    'ISCA': 'ischemic anterior changes',
+    'NST': 'non-specific ST-T changes',
+    'CLBBB': 'complete left bundle branch block',
+    'ILBBB': 'incomplete left bundle branch block',
+    'IRBBB': 'incomplete right bundle branch block',
+    'PMI': 'posterior myocardial infarction',
+    'RVH': 'right ventricular hypertrophy',
+    'IVCD': 'intraventricular conduction delay'
+}
+
 
 class ExpandToSquare(object):
     """Pad rectangle image to square with solid background color."""
@@ -227,6 +253,7 @@ def compute_word_level_patch_similarity(model, tokenizer, image_tensor, text_phr
                 "min": float(pooled_map.min()),
                 "max": float(pooled_map.max()),
                 "mean": float(pooled_map.mean()),
+                "max_patch_idx": int(np.argmax(pooled_map)),
                 "topk": sorted(pooled_map.tolist(), reverse=True)[:5]
             }
 
@@ -251,18 +278,41 @@ def compute_phrase_level_patch_similarity(model, tokenizer, image_tensor, text_p
         "min": float(pooled_map.min()),
         "max": float(pooled_map.max()),
         "mean": float(pooled_map.mean()),
+        "max_patch_idx": int(np.argmax(pooled_map)),
         "topk": sorted(pooled_map.tolist(), reverse=True)[:5]
     }
 
 
-def compute_attention_rollout(model, image_tensor):
-    """Compute ViT self-attention rollout matrix from vision encoder attentions."""
+def compute_attention_rollout(model, image_tensor, zero_border=False, border_size=1, zero_left_right=False, return_register_attention=False):
+    """
+    Compute ViT self-attention rollout matrix from vision encoder attentions.
+    Correctly supports models with num_registers > 0 by properly routing register tokens
+    through the vision encoder and slicing the spatial patch tokens.
+    If zero_border=False (default), the complete, uncut attention rollout is returned.
+    """
+    num_registers = 0
     with torch.no_grad():
         if hasattr(model, "vision_encoder"):
-            outputs = model.vision_encoder.encoder(image_tensor, output_attentions=True)
-            attentions = outputs.attentions # tuple of [B, n_heads, tokens, tokens]
-            image_size = getattr(model.vision_encoder, "image_size", getattr(model.vision_encoder.encoder.config, "image_size", 224))
-            patch_size = getattr(model.vision_encoder, "patch_size", getattr(model.vision_encoder.encoder.config, "patch_size", 14))
+            ve = model.vision_encoder
+            num_registers = getattr(ve, "num_registers", 0)
+            if num_registers > 0:
+                B = image_tensor.shape[0]
+                hidden_states = ve.encoder.vision_model.embeddings(image_tensor)
+                cls_embed = hidden_states[:, :1, :]
+                patch_embeds = hidden_states[:, 1:, :]
+                reg_tokens = ve.register_tokens.expand(B, -1, -1).to(hidden_states.dtype)
+                hidden_states = torch.cat([cls_embed, reg_tokens, patch_embeds], dim=1)
+                hidden_states = ve.encoder.vision_model.pre_layrnorm(hidden_states)
+                encoder_outputs = ve.encoder.vision_model.encoder(
+                    inputs_embeds=hidden_states,
+                    output_attentions=True,
+                )
+                attentions = encoder_outputs.attentions
+            else:
+                outputs = ve.encoder(image_tensor, output_attentions=True)
+                attentions = outputs.attentions
+            image_size = getattr(ve, "image_size", 224)
+            patch_size = getattr(ve, "patch_size", 14)
         else:
             outputs = model(image_tensor, output_attentions=True)
             attentions = outputs.attentions
@@ -280,7 +330,15 @@ def compute_attention_rollout(model, image_tensor):
             result = torch.matmul(attn_normalized, result)
 
     grid_size = image_size // patch_size
-    cls_rollout = result[0, 1:].numpy().reshape(grid_size, grid_size)
+    patch_start_idx = 1 + num_registers
+    cls_rollout = result[0, patch_start_idx:].numpy().reshape(grid_size, grid_size)
+    if zero_border:
+        cls_rollout = zero_border_squares(cls_rollout, border_size=border_size, fill_value=0.0, zero_top_bottom=True, zero_left_right=zero_left_right)
+
+    if return_register_attention:
+        reg_attn = result[0, 1:1 + num_registers].numpy() if num_registers > 0 else np.array([])
+        return cls_rollout, reg_attn
+
     return cls_rollout
 
 
@@ -316,10 +374,52 @@ def run_text_independence_test(model, tokenizer, image_tensor, test_terms=None, 
     return results, most_common_patch, same_patch_freq
 
 
+def zero_border_squares(sim_map, border_size=1, fill_value=0.0, zero_top_bottom=True, zero_left_right=False):
+    """
+    Set the bordering patch squares on top and bottom to fill_value (default 0.0),
+    while retaining left and right borders (unless zero_left_right=True).
+    Works for both 2D grids [H, W] and 1D flattened patch arrays [P].
+    """
+    if isinstance(sim_map, np.ndarray):
+        is_1d = (sim_map.ndim == 1)
+        if is_1d:
+            grid_size = int(np.sqrt(sim_map.shape[0]))
+            grid = np.copy(sim_map).reshape(grid_size, grid_size)
+        else:
+            grid = np.copy(sim_map)
+
+        if zero_top_bottom:
+            grid[:border_size, :] = fill_value
+            grid[-border_size:, :] = fill_value
+        if zero_left_right:
+            grid[:, :border_size] = fill_value
+            grid[:, -border_size:] = fill_value
+
+        return grid.flatten() if is_1d else grid
+    elif torch.is_tensor(sim_map):
+        is_1d = (sim_map.dim() == 1)
+        if is_1d:
+            grid_size = int(np.sqrt(sim_map.size(0)))
+            grid = sim_map.clone().view(grid_size, grid_size)
+        else:
+            grid = sim_map.clone()
+
+        if zero_top_bottom:
+            grid[:border_size, :] = fill_value
+            grid[-border_size:, :] = fill_value
+        if zero_left_right:
+            grid[:, :border_size] = fill_value
+            grid[:, -border_size:] = fill_value
+
+        return grid.flatten() if is_1d else grid
+    else:
+        return sim_map
+
+
 def get_warm_red_transparent_cmap():
     """
     Return a custom Warm Red vs. Transparent Colormap:
-    Low values (min similarity) are completely transparent (alpha=0.0).
+    Low values (min similarity / <= 0) are completely transparent (alpha=0.0).
     High values (peak similarity) glow in warm red (alpha=0.85).
     """
     from matplotlib.colors import LinearSegmentedColormap
@@ -328,7 +428,10 @@ def get_warm_red_transparent_cmap():
         (1.0, 0.25, 0.0, 0.35), # mid: semi-transparent warm orange-red
         (1.0, 0.0, 0.0, 0.85)   # peak: glowing warm red
     ]
-    return LinearSegmentedColormap.from_list('WarmRedTransparent', colors)
+    cmap = LinearSegmentedColormap.from_list('WarmRedTransparent', colors)
+    cmap.set_bad(alpha=0.0)
+    cmap.set_under(alpha=0.0)
+    return cmap
 
 
 def get_padding_info(raw_shape, image_size=224, patch_size=14):
@@ -413,17 +516,31 @@ def map_patch_to_raw_pixels(row, col, raw_shape, image_size=224, patch_size=14):
     }
 
 
-def plot_warm_red_overlay(ax, base_image, sim_grid, vmin=None, vmax=None, title=None, raw_shape=None):
+def plot_warm_red_overlay(ax, base_image, sim_grid, vmin=None, vmax=None, title=None, raw_shape=None, zero_border=False, border_size=1, zero_left_right=False):
     """
     Plot base ECG image and overlay the similarity grid with Warm Red vs. Transparent colormap.
     Precisely constrains the heatmap and view limits to match the original unpadded image bounds.
+    If zero_border=False (default), displays the complete, uncut heatmap without artificially cutting borders.
+    If zero_border=True, bordering squares on top and bottom are set to zero/transparent (rendering as white space),
+    while retaining left and right borders (unless zero_left_right=True).
     """
+    sim_grid = np.copy(sim_grid).astype(float)
+    if zero_border:
+        sim_grid[:border_size, :] = np.nan
+        sim_grid[-border_size:, :] = np.nan
+        if zero_left_right:
+            sim_grid[:, :border_size] = np.nan
+            sim_grid[:, -border_size:] = np.nan
+
+    valid_vals = sim_grid[~np.isnan(sim_grid)]
     if vmin is None:
-        vmin = sim_grid.min()
+        vmin = 0.0 if (len(valid_vals) > 0 and valid_vals.min() >= 0.0) else (valid_vals.min() if len(valid_vals) > 0 else 0.0)
     if vmax is None:
-        vmax = sim_grid.max()
+        vmax = valid_vals.max() if (len(valid_vals) > 0 and valid_vals.max() > vmin) else (vmin + 1.0)
 
     cmap = get_warm_red_transparent_cmap()
+    cmap.set_bad(alpha=0.0)
+    cmap.set_under(alpha=0.0)
 
     W, H = base_image.width, base_image.height
     if raw_shape is not None:
@@ -436,28 +553,28 @@ def plot_warm_red_overlay(ax, base_image, sim_grid, vmin=None, vmax=None, title=
     else:
         raw_w, raw_h = W, H
 
-    # 1. Plot base ECG image
-    ax.imshow(base_image)
-
-    # 2. Overlay heatmap and set plot view limits to match the raw image region
+    # 1. Plot base ECG image and overlay heatmap
     if W == H and raw_w != raw_h:
         # base_image is padded square canvas (e.g. 224x224), but raw image is non-square (e.g. 2200x1700)
         info = get_padding_info((raw_w, raw_h), image_size=W)
         ext = info["raw_extent_px"] # [x_min, x_max, y_max, y_min]
+        ax.imshow(base_image, extent=[0, W, H, 0])
         im = ax.imshow(sim_grid, cmap=cmap, vmin=vmin, vmax=vmax, extent=[0, W, H, 0], interpolation='bicubic')
         ax.set_xlim(ext[0], ext[1])
         ax.set_ylim(ext[2], ext[3])
     elif W != H:
-        # base_image is original raw_image directly (e.g. 2200x1700)
+        # base_image is original raw_image directly (e.g. 2200x1700, full crisp resolution)
         max_dim = max(W, H)
         left_pad = (max_dim - W) // 2
         top_pad = (max_dim - H) // 2
         right_pad = max_dim - W - left_pad
         bottom_pad = max_dim - H - top_pad
+        ax.imshow(base_image, extent=[0, W, H, 0])
         im = ax.imshow(sim_grid, cmap=cmap, vmin=vmin, vmax=vmax, extent=[-left_pad, W + right_pad, H + bottom_pad, -top_pad], interpolation='bicubic')
         ax.set_xlim(0, W)
         ax.set_ylim(H, 0)
     else:
+        ax.imshow(base_image, extent=[0, W, H, 0])
         im = ax.imshow(sim_grid, cmap=cmap, vmin=vmin, vmax=vmax, extent=[0, W, H, 0], interpolation='bicubic')
 
     if title:
@@ -466,12 +583,12 @@ def plot_warm_red_overlay(ax, base_image, sim_grid, vmin=None, vmax=None, title=
     return im
 
 
-def create_ecg_lead_roi_mask(image_size=224, patch_size=14, raw_shape=None, margin_top_rows=2, margin_bottom_rows=2, margin_side_cols=1, inner_margin_rows=0, inner_margin_cols=0):
+def create_ecg_lead_roi_mask(image_size=224, patch_size=14, raw_shape=None, margin_top_rows=2, margin_bottom_rows=2, margin_side_cols=0, inner_margin_rows=1, inner_margin_cols=0, exclude_border=True, exclude_side_borders=False):
     """
     Generate a 2D spatial boolean mask for the active lead region of an ECG.
     If raw_shape=(width, height) is provided, dynamically calculates the exact patch bounds
     based on the raw image's aspect ratio and padding geometry.
-    Otherwise falls back to static margins (margin_top_rows, etc.).
+    Removes top and bottom margins/borders while retaining the full left and right active lead signals.
     """
     grid_size = image_size // patch_size
     mask = np.zeros((grid_size, grid_size), dtype=bool)
@@ -489,6 +606,14 @@ def create_ecg_lead_roi_mask(image_size=224, patch_size=14, raw_shape=None, marg
         end_col = grid_size - margin_side_cols
 
     mask[start_row:end_row, start_col:end_col] = True
+
+    if exclude_border:
+        mask[0, :] = False
+        mask[-1, :] = False
+        if exclude_side_borders:
+            mask[:, 0] = False
+            mask[:, -1] = False
+
     return mask
 
 
