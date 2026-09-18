@@ -1,0 +1,9 @@
+name: ablation_baseline
+description: "Downstream ablation on PTB-XL subclass (100% split): frozen backbone vs. last 2 layers unfrozen for Raw CLIP and MIMIC-pretrained ViT-Large"
+train_pct: 100
+
+configs:
+  - filip/configs/ablation_baseline/raw_clip_frozen.yaml
+  - filip/configs/ablation_baseline/raw_clip_unfreeze2.yaml
+  - filip/configs/ablation_baseline/pretrained_frozen.yaml
+  - filip/configs/ablation_baseline/pretrained_unfreeze2.yaml

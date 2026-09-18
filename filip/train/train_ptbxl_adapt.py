@@ -196,6 +196,17 @@ def train_ptbxl():
             for i in range(cutoff_layer):
                 for param in layers[i].parameters():
                     param.requires_grad = False
+
+            # Freeze unused text encoder and alignment heads if present
+            if hasattr(model, 'text_encoder'):
+                for param in model.text_encoder.parameters():
+                    param.requires_grad = False
+            if hasattr(model, 'report_alignment_head'):
+                for param in model.report_alignment_head.parameters():
+                    param.requires_grad = False
+            if hasattr(model, 'feature_alignment_head'):
+                for param in model.feature_alignment_head.parameters():
+                    param.requires_grad = False
         else:
             print(f"Warning: Could not identify transformer layer structure for unfreeze_last_n_layers={unfreeze_last_n}.")
             
