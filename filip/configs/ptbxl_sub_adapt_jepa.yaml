@@ -13,8 +13,6 @@ model:
   feature_topk: 8
   feature_align_dim: 256
   diagnosis_from_features: false
-  use_adapters: true
-  adapter_type: lora
   num_diagnosis: 23
 
 loss:

@@ -14,8 +14,6 @@ model:
   text_encoder: openai/clip-vit-large-patch14
   text_max_length: 77
   diagnosis_mode: class_head
-  use_adapters: true
-  adapter_type: lora
   num_classes: 5
   num_diagnosis: 5
 

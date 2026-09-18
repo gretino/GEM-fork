@@ -11,8 +11,6 @@ model:
   patch_size: 14
   use_feature_alignment: true
   diagnosis_from_features: true
-  use_adapters: true
-  adapter_type: lora
   num_diagnosis: 23
 
 loss:
