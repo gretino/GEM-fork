@@ -1,0 +1,20 @@
+name: raw_clip_baseline
+description: "Raw CLIP baseline with frozen backbone and last 2 layers unfrozen (unfreeze2) across all 6 benchmark datasets and all splits (1%, 10%, 100%)"
+train_pcts:
+  - 1
+  - 10
+  - 100
+
+configs:
+  - filip/configs/raw_clip_baseline/ptbxl_super_frozen.yaml
+  - filip/configs/raw_clip_baseline/ptbxl_super_unfreeze2.yaml
+  - filip/configs/raw_clip_baseline/ptbxl_sub_frozen.yaml
+  - filip/configs/raw_clip_baseline/ptbxl_sub_unfreeze2.yaml
+  - filip/configs/raw_clip_baseline/ptbxl_rhythm_frozen.yaml
+  - filip/configs/raw_clip_baseline/ptbxl_rhythm_unfreeze2.yaml
+  - filip/configs/raw_clip_baseline/ptbxl_form_frozen.yaml
+  - filip/configs/raw_clip_baseline/ptbxl_form_unfreeze2.yaml
+  - filip/configs/raw_clip_baseline/cpsc_frozen.yaml
+  - filip/configs/raw_clip_baseline/cpsc_unfreeze2.yaml
+  - filip/configs/raw_clip_baseline/csn_frozen.yaml
+  - filip/configs/raw_clip_baseline/csn_unfreeze2.yaml

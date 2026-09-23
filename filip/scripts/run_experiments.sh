@@ -90,11 +90,18 @@ if [ -n "$RUN_MANIFEST" ]; then
         exit 1
     fi
     MANIFEST_NAME=$($PYTHON -c "import yaml; print(yaml.safe_load(open('$RUN_MANIFEST')).get('name', ''))")
-    MANIFEST_PCT=$($PYTHON -c "import yaml; print(yaml.safe_load(open('$RUN_MANIFEST')).get('train_pct', 100))")
+    MANIFEST_PCTS=$($PYTHON -c "
+import yaml
+data = yaml.safe_load(open('$RUN_MANIFEST'))
+pcts = data.get('train_pcts', data.get('train_pct', '100'))
+if isinstance(pcts, list):
+    print(','.join(str(p) for p in pcts))
+else:
+    print(str(pcts))
+")
     MANIFEST_CONFIGS=$($PYTHON -c "import yaml; print(' '.join(yaml.safe_load(open('$RUN_MANIFEST')).get('configs', [])))")
     
     [ -z "$RUN_NAME" ] && RUN_NAME="$MANIFEST_NAME"
-    [ -z "$TRAIN_PCT" ] && TRAIN_PCT="$MANIFEST_PCT"
     read -r -a CONFIGS <<< "$MANIFEST_CONFIGS"
 fi
 
@@ -103,12 +110,35 @@ if [ ${#POSITIONAL_ARGS[@]} -gt 0 ]; then
     CONFIGS+=("${POSITIONAL_ARGS[@]}")
 fi
 
-# Fallback defaults
-[ -z "$TRAIN_PCT" ] && TRAIN_PCT="100"
+# Determine active training splits (percentages)
+PCTS=()
+if [ -n "$TRAIN_PCT" ]; then
+    IFS=',' read -r -a PCTS <<< "$TRAIN_PCT"
+elif [ -n "$MANIFEST_PCTS" ]; then
+    IFS=',' read -r -a PCTS <<< "$MANIFEST_PCTS"
+else
+    PCTS=(100)
+fi
+
 [ -z "$RUN_NAME" ] && RUN_NAME="run_$(date +%Y%m%d_%H%M%S)"
 
 if [ ${#CONFIGS[@]} -eq 0 ]; then
     echo "Error: No config files specified. Provide a manifest (--manifest) or config paths."
+    exit 1
+fi
+
+# Build task queue: combination of (config, split_pct)
+TASKS=()
+for pct in "${PCTS[@]}"; do
+    pct_trimmed=$(echo "$pct" | tr -d '[:space:]')
+    [ -z "$pct_trimmed" ] && continue
+    for cfg in "${CONFIGS[@]}"; do
+        TASKS+=("${cfg}:::${pct_trimmed}")
+    done
+done
+
+if [ ${#TASKS[@]} -eq 0 ]; then
+    echo "Error: No tasks queued. Check configs and train splits."
     exit 1
 fi
 
@@ -147,13 +177,17 @@ fi
 echo "========================================================================"
 echo "    FILIP EXPERIMENT RUNNER"
 echo "    Run Name        : $RUN_NAME"
-echo "    Train Split Pct : $TRAIN_PCT%"
-echo "    Queued Configs  : ${#CONFIGS[@]}"
+echo "    Train Splits    : ${PCTS[*]}%"
+echo "    Unique Configs  : ${#CONFIGS[@]}"
+echo "    Total Tasks     : ${#TASKS[@]}"
 echo "    Active GPUs     : ${GPUS[*]}"
 echo "    Skip Completed  : $SKIP_COMPLETED"
 echo "========================================================================"
-for i in "${!CONFIGS[@]}"; do
-    echo "  $((i+1)). ${CONFIGS[$i]}"
+for i in "${!TASKS[@]}"; do
+    task_entry="${TASKS[$i]}"
+    t_cfg="${task_entry%:::*}"
+    t_pct="${task_entry#*:::}"
+    echo "  $((i+1)). $t_cfg ($t_pct%)"
 done
 echo "========================================================================"
 
@@ -177,6 +211,7 @@ trap cleanup EXIT INT TERM
 run_single_task() {
     local gpu=$1
     local cfg=$2
+    local task_pct=$3
 
     if [ ! -f "$cfg" ]; then
         echo "[GPU $gpu] Error: Config file not found at $cfg"
@@ -190,7 +225,7 @@ run_single_task() {
     if [[ "$exp_name" =~ _[0-9]+$ ]]; then
         out_dir="outputs/filip/${exp_name}"
     else
-        out_dir="outputs/filip/${exp_name}_${TRAIN_PCT}"
+        out_dir="outputs/filip/${exp_name}_${task_pct}"
     fi
 
     local best_ckpt="${out_dir}/best.pt"
@@ -198,20 +233,21 @@ run_single_task() {
     local thresholds_file="${eval_dir}/tuned_thresholds.json"
 
     echo "========================================================================"
-    echo "[GPU $gpu] STARTING TASK: $exp_name"
+    echo "[GPU $gpu] STARTING TASK: $exp_name ($task_pct%)"
     echo "  Config    : $cfg"
+    echo "  Split     : $task_pct%"
     echo "  Output Dir: $out_dir"
     echo "========================================================================"
 
     # Check if already completed
     if [ "$SKIP_COMPLETED" = "true" ] && [ -f "${eval_dir}/metrics.txt" ] && [ -s "${eval_dir}/metrics.txt" ]; then
-        echo "[GPU $gpu] Task $exp_name is already completed (${eval_dir}/metrics.txt exists). Skipping."
+        echo "[GPU $gpu] Task $exp_name ($task_pct%) is already completed (${eval_dir}/metrics.txt exists). Skipping."
         return 0
     fi
 
     # 1. Training (Stage 2 adaptation)
-    echo "[GPU $gpu] 1. Training downstream adaptation: $exp_name..."
-    local train_args=("--config" "$cfg" "--train_pct" "$TRAIN_PCT" "--out_dir" "$out_dir")
+    echo "[GPU $gpu] 1. Training downstream adaptation: $exp_name ($task_pct%)..."
+    local train_args=("--config" "$cfg" "--train_pct" "$task_pct" "--out_dir" "$out_dir")
     if [ -n "$RESUME_ARG" ]; then
         train_args+=("$RESUME_ARG")
     fi
@@ -237,7 +273,7 @@ run_single_task() {
         --thresholds_file "$thresholds_file" \
         --out_dir "$eval_dir"
 
-    echo "[GPU $gpu] COMPLETED: $exp_name successfully!"
+    echo "[GPU $gpu] COMPLETED: $exp_name ($task_pct%) successfully!"
 }
 
 run_worker() {
@@ -248,7 +284,7 @@ run_worker() {
 
         local idx
         idx=$(cat "$COUNTER_FILE")
-        if [ "$idx" -ge "${#CONFIGS[@]}" ]; then
+        if [ "$idx" -ge "${#TASKS[@]}" ]; then
             flock -u 200
             break
         fi
@@ -257,8 +293,10 @@ run_worker() {
         echo "$next_idx" > "$COUNTER_FILE"
         flock -u 200
 
-        local cfg="${CONFIGS[$idx]}"
-        run_single_task "$gpu" "$cfg"
+        local task_entry="${TASKS[$idx]}"
+        local cfg="${task_entry%:::*}"
+        local task_pct="${task_entry#*:::}"
+        run_single_task "$gpu" "$cfg" "$task_pct"
     done
 }
 
@@ -282,10 +320,9 @@ echo "========================================================================"
 # -----------------------------------------------------------------------------
 # Summary Report Generation
 # -----------------------------------------------------------------------------
-REPORT_CFGS_STR="${CONFIGS[*]}"
-export REPORT_CFGS_STR
+REPORT_TASKS_STR="${TASKS[*]}"
+export REPORT_TASKS_STR
 export RUN_NAME_EXPORT="$RUN_NAME"
-export TRAIN_PCT_EXPORT="$TRAIN_PCT"
 
 $PYTHON - << 'EOF'
 import os
@@ -303,8 +340,7 @@ def parse_metrics(filepath):
     return metrics
 
 run_name = os.environ.get("RUN_NAME_EXPORT", "experiments")
-train_pct = os.environ.get("TRAIN_PCT_EXPORT", "100")
-cfgs = [c for c in os.environ.get("REPORT_CFGS_STR", "").split() if c]
+task_entries = [t for t in os.environ.get("REPORT_TASKS_STR", "").split() if t]
 
 metric_keys = ['Macro AUC', 'Macro F1', 'Micro F1', 'Accuracy', 'Hamming Loss']
 
@@ -339,17 +375,20 @@ if raw_baseline_m:
     print(row)
     md_lines.append(f"| **Raw CLIP Full Fine-Tune (Baseline)** | " + " | ".join([raw_baseline_m.get(k, '-') for k in metric_keys]) + " |")
 
-for cfg in cfgs:
+for task_entry in task_entries:
+    parts = task_entry.split(":::")
+    cfg = parts[0]
+    task_pct = parts[1] if len(parts) > 1 else "100"
     try:
         data = yaml.safe_load(open(cfg))
         exp_name = data.get('experiment_name', os.path.splitext(os.path.basename(cfg))[0])
     except Exception:
         exp_name = os.path.splitext(os.path.basename(cfg))[0]
 
-    if exp_name.endswith(f"_{train_pct}"):
+    if exp_name.endswith(f"_{task_pct}"):
         out_dir = os.path.join("outputs", "filip", exp_name)
     else:
-        out_dir = os.path.join("outputs", "filip", f"{exp_name}_{train_pct}")
+        out_dir = os.path.join("outputs", "filip", f"{exp_name}_{task_pct}")
 
     m_path = os.path.join(out_dir, "evaluation", "metrics.txt")
     m = parse_metrics(m_path)
