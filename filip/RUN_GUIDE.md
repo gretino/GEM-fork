@@ -1,198 +1,290 @@
-# Running the FILIP Experiment
+# FILIP Experiment Execution Guide
 
-The original feature-label and class-head configurations remain unchanged. An
-alternative two-stage path aligns ECG patches with raw MIMIC report tokens and
-then adapts those representations against downstream diagnosis text. The
-report-alignment path uses separate configuration files so existing experiments
-continue to run with their original behavior.
+This guide provides instructions for data preparation, training, downstream adaptation, evaluation, and visualization for the **FILIP-style ECG alignment experiment pipeline**.
 
-This guide explains how to prepare the data and run the newly implemented FILIP experiment architecture.
+---
 
-## 0. Data Processing Pipeline (MIMIC-IV-ECG)
+## Architecture Overview
 
-Before training, the raw MIMIC-IV-ECG database must be processed into formatted JSON labels and pristine `.png` images.
+The FILIP architecture consists of a two-stage training scheme:
+1. **Stage 1 (MIMIC-IV-ECG Pretraining)**:
+   - **Feature-Alignment**: Aligns ECG image patches with intermediate ECG clinical feature labels.
+   - **Report-Alignment**: Aligns ECG image patches with raw cardiology report tokens (ViT-Base or ViT-Large backbone).
+2. **Stage 2 (Downstream Adaptation & Evaluation)**:
+   - Adapts the pretrained vision encoder representations across **6 verified benchmark datasets** under varying data split percentages (1%, 10%, 100%).
+   - Preserves feature-level interpretability via feature-consistency or prompt-based text adaptation.
+   - Uses validation-set threshold tuning to optimize class-specific decision boundaries before final test evaluation.
 
-The full pipeline consists of the following sequence:
+For dataset split counts and class distributions, see [docs/filip_dataset_splits_summary.md](file:///home/qfbqt/repo/GEM-fork/docs/filip_dataset_splits_summary.md).
+
+---
+
+## 0. Data Preparation Pipeline
+
+### 0.1 Stage 1 Pretraining Data (MIMIC-IV-ECG)
+
+Before running Stage 1 pretraining, process raw MIMIC-IV-ECG waveforms into formatted JSON metadata and 12-lead ECG images:
 
 ```bash
-# Navigate to the repo root
+# Navigate to repository root
 cd /home/qfbqt/repo/GEM-fork
 
-# 1. Build the master list from the raw datasets (usually only needs to be run once)
+# 1. Build master record list from raw files (typically run once)
 python filip/data_processing/build_master_list.py
 
-# 2. Resample the dataset to your desired size (e.g. 1,000 records). 
-# This shuffles the records and splits them 8:1:1 into train/val/test JSONs.
-python filip/data_processing/sample_splits.py --num_items 1000
+# 2. Sample records into 8:1:1 train/val/test splits (e.g. 10,000 records)
+python filip/data_processing/sample_splits.py --num_items 10000
 
-# 3. Extract clinical features and diagnoses for the newly sampled records
+# 3. Extract clinical features and machine measurements
 python filip/data_processing/extract_clinical_features.py
 python filip/data_processing/extract_measurements.py
 
-# 4. Render the target `.dat` signals into 1x12 pristine format images.
-# This script automatically reads the JSON files built in step 2 and generates exactly those images.
+# 4. Render ECG signals into 1x12 layout images
 python filip/scripts/generate_mimic_subset.py
-```d
-
-> [!TIP]
-> If you ever want to increase the dataset size to 10,000, simply run the sequence above starting from **Step 2** and pass `--num_items 10000` to the `sample_splits.py` script.
-
-
-## 1. Modifying Configuration for Trial Runs vs Full Runs
-
-Both stages are controlled completely by their respective YAML files in `/filip/configs/`. You don't need to change the python code to adjust run settings.
-
-If you want to do a **trial run** (to ensure the model fits in VRAM and no bugs exist), lower the `epochs` and `batch_size`:
-
-1. Open `filip/configs/mimic_report_alignment_pretrain.yaml`.
-2. Edit the `training` section:
-   ```yaml
-   training:
-     batch_size: 4       # small batch for trial
-     learning_rate: 1.0e-4
-     epochs: 1           # 1 epoch for testing
-     mixed_precision: true
-   ```
-3. Run the report-alignment configuration:
-   ```bash
-   bash filip/scripts/train_mimic_feature.sh \
-     -c filip/configs/mimic_report_alignment_pretrain.yaml
-   ```
-
-Running `bash filip/scripts/train_mimic_feature.sh` without `-c` continues to
-use the original `mimic_feature_pretrain.yaml` feature-label configuration.
-
-For a **full run**, simply change `batch_size` back to your GPU's capacity (e.g., 32 or 64) and set `epochs` to your desired length (e.g., 10).
-
-## 2. Running for a Subset of Data (Percentage / Count)
-
-If you want to quickly iterate over just a small subset of the dataset (e.g., the first 100 items), you can use the `--max_batches` limit trick natively supported by PyTorch loops. But an easier way without editing code is simply truncating the JSON records file during testing.
-
-Alternatively, if you'd prefer to edit the script, you can open `filip/train/train_mimic_feature.py` and modify the loop:
-
-```python
-        for i, batch in enumerate(pbar):
-            if i >= 50:  # Break after 50 batches for a subset run!
-                break
-```
-We deliberately kept the training loops lightweight and standard so you can easily inject early stops like this.
-
-## 3. Running in the Background (Recommended for Full Runs)
-
-Because the full dataset is large, you should use `nohup` to run the bash scripts so they continue even if your SSH terminal disconnects:
-
-```bash
-mkdir -p filip/logs
-nohup bash filip/scripts/train_mimic_feature.sh \
-  -c filip/configs/mimic_report_alignment_pretrain.yaml \
-  > filip/logs/stage1-report-alignment.log 2>&1 &
 ```
 
-You can view the progress anytime with:
+### 0.2 Stage 2 Downstream Benchmark Data (6 Verified Tasks)
+
+The benchmark suite evaluates across 6 downstream tasks:
+* **PTB-XL Superclass** (`ptbxl_super` - 5 classes)
+* **PTB-XL Subclass** (`ptbxl_sub` - 23 classes)
+* **PTB-XL Rhythm** (`ptbxl_rhythm` - 12 classes)
+* **PTB-XL Form** (`ptbxl_form` - 19 classes)
+* **CPSC 2018 / ICBEB** (`cpsc2018` - 9 classes)
+* **Chapman-Shaoxing-Ningbo** (`csn` - 38 classes)
+
+#### Step 1: Render Waveform Images (if not already generated)
 ```bash
-tail -f filip/logs/stage1-report-alignment.log
-```
-
-## 4. Stage 2 (PTB-XL Adaptation)
-
-Once Stage 1 finishes, it will save a `best.pt` checkpoint to
-`outputs/filip/mimic_report_alignment_pretrain/checkpoints/best.pt`.
-
-Before training Stage 2, you must prepare the PTB-XL dataset images and split files:
-
-```bash
-# 1. Render all PTB-XL ECG waveforms as flat 1-column PNG images (takes some time)
+# PTB-XL images (1x12 layout)
 bash scripts/generate_ecg_images.sh
 
-# 2. Run the PTB-XL preprocessing script to align the images with metadata and build splits
-PYTHONPATH=. python filip/data_processing/prepare_ptbxl.py
-```
+# CPSC 2018 images (1x12 layout)
+python gem_generation/ecg-image-generator/gen_ecg_images_from_data_batch.py \
+  -i /home/qfbqt/8TB/datasets/physionet.org/files/challenge-2020/1.0.2/training/cpsc_2018 \
+  -o data/cpsc2018/images \
+  --num_columns 1 \
+  --num_threads 16
 
-The original Stage 2 config (`filip/configs/ptbxl_diagnosis_adapt.yaml`) remains
-wired to the original feature-pretraining checkpoint. To run that class-head
-baseline, use:
-
-```bash
-nohup bash filip/scripts/train_ptbxl_adapt.sh > filip/logs/stage2.log 2>&1 &
-```
-
-The existing class-head configurations remain supported. To adapt against
-diagnosis text instead, use the text-prompt configuration; it scores every ECG
-against every diagnosis prompt and applies the same masked multilabel loss:
-
-```bash
-bash filip/scripts/train_ptbxl_adapt.sh \
-  -c filip/configs/ptbxl_diagnosis_text_adapt.yaml
-```
-
-`filip/eval/text_alignment_visualizer.ipynb` loads either a Stage 1 report
-checkpoint or a Stage 2 text-diagnosis checkpoint. Its setup cell accepts the
-checkpoint, image, candidate text, and selected token/phrase, then plots text
-likelihoods and the corresponding patch-alignment heatmap.
-
-# 1. Train on CSN folds
-bash filip/scripts/train_ptbxl_adapt.sh -c filip/configs/csn_diagnosis_adapt.yaml -g <gpu_id>
-
-# 2. Tune decision thresholds on CSN validation fold
-bash filip/scripts/tune_thresholds.sh -c filip/configs/csn_diagnosis_adapt.yaml -g <gpu_id>
-
-# 3. Evaluate model on CSN test fold using the tuned thresholds
-bash filip/scripts/eval_diagnosis.sh \
-  -c filip/configs/csn_diagnosis_adapt.yaml \
-  -ckpt outputs/filip/csn_adapt/checkpoints/best.pt \
-  -t outputs/filip/csn_adapt/ptb-val-tuning/thresholds.json \
-  -o outputs/filip/csn_adapt/test-tuned \
-  -g <gpu_id>
-
-# 1. Generate CSN images in 1x12 layout
+# CSN images (1x12 layout)
 python gem_generation/ecg-image-generator/gen_ecg_images_from_data_batch.py \
   -i /home/qfbqt/8TB/datasets/physionet.org/files/ecg-arrhythmia/1.0.0/WFDBRecords \
   -o /home/qfbqt/8TB/datasets/csn_new \
   --num_columns 1 \
   --num_threads 16
+```
 
-python filip/data_processing/prepare_csn.py
+#### Step 2: Generate Verified Split Metadata
+Run the unified preparation script to create split JSONs and symlinks for all 6 tasks under `data/`:
+```bash
+python filip/data_processing/prepare_verified_splits.py
+```
+This produces:
+* `data/ptbxl_super_class/{train,val,test}_records.json` & `diagnoses.json`
+* `data/ptbxl_sub_class/{train,val,test}_records.json` & `diagnoses.json`
+* `data/ptbxl_rhythm/{train,val,test}_records.json` & `diagnoses.json`
+* `data/ptbxl_form/{train,val,test}_records.json` & `diagnoses.json`
+* `data/cpsc2018_verified/{train,val,test}_records.json` & `diagnoses.json`
+* `data/csn_verified/{train,val,test}_records.json` & `diagnoses.json`
 
-# 2. Generate CPSC 2018 images in 1x12 layout
-rm -rf /home/qfbqt/repo/GEM-fork/data/cpsc2018/images
-python gem_generation/ecg-image-generator/gen_ecg_images_from_data_batch.py \
-  -i /home/qfbqt/8TB/datasets/physionet.org/files/challenge-2020/1.0.2/training/cpsc_2018 \
-  -o /home/qfbqt/repo/GEM-fork/data/cpsc2018/images \
-  --num_columns 1 \
-  --num_threads 16
+---
 
-python filip/data_processing/prepare_cpsc2018.py
+## 1. Stage 1: MIMIC-IV-ECG Pretraining
 
-# 3. Generate Georgia images in 1x12 layout
-rm -rf /home/qfbqt/repo/GEM-fork/data/georgia/images
-python gem_generation/ecg-image-generator/gen_ecg_images_from_data_batch.py \
-  -i /home/qfbqt/8TB/datasets/physionet.org/files/challenge-2020/1.0.2/training/georgia \
-  -o /home/qfbqt/repo/GEM-fork/data/georgia/images \
-  --num_columns 1 \
-  --num_threads 16
+Stage 1 configurations are located in `filip/configs/`.
 
-python filip/data_processing/prepare_georgia.py
+### Report-Alignment Pretraining (ViT-Large, Recommended)
+```bash
+bash filip/scripts/train_mimic_feature.sh \
+  -c filip/configs/mimic_report_alignment_vit_large_pretrain.yaml \
+  -g 0
+```
 
+### Feature-Alignment Pretraining (Base)
+```bash
+bash filip/scripts/train_mimic_feature.sh \
+  -c filip/configs/mimic_feature_pretrain.yaml \
+  -g 0
+```
+
+### Background Execution with Logging
+```bash
+mkdir -p filip/logs
+nohup bash filip/scripts/train_mimic_feature.sh \
+  -c filip/configs/mimic_report_alignment_vit_large_pretrain.yaml \
+  -g 0 \
+  > filip/logs/stage1_pretrain.log 2>&1 &
+
+# Monitor progress
+tail -f filip/logs/stage1_pretrain.log
+```
+
+---
+
+## 2. Stage 2: Downstream Adaptation & Evaluation
+
+Downstream evaluation follows a **3-step lifecycle** for every task:
+1. **Train** downstream adaptation model on training split (`train_ptbxl_adapt.py`).
+2. **Tune** class-specific decision thresholds on validation split (`tune_thresholds.py`).
+3. **Evaluate** model on test split using tuned thresholds (`evaluate_diagnosis.py`).
+
+There are multiple ways to execute Stage 2 experiments depending on your workflow.
+
+---
+
+### Method A: Generic Multi-GPU Runner (Recommended)
+
+[`filip/scripts/run_experiments.sh`](file:///home/qfbqt/repo/GEM-fork/filip/scripts/run_experiments.sh) is a multi-GPU queue runner. It distributes tasks across idle or specified GPUs, executes all 3 lifecycle steps per task, and generates an aggregated Markdown summary report.
+
+#### 1. Running a Manifest from `filip/configs/runs/*.yaml`
+Manifests define a group of configs and data fractions to run:
+```bash
+# Run baseline experiments on GPUs 0, 1, 2, 3 across all splits (1%, 10%, 100%)
+bash filip/scripts/run_experiments.sh \
+  -m filip/configs/runs/raw_clip_baseline.yaml \
+  -g 0,1,2,3
+
+# Run ablation baseline manifest
+bash filip/scripts/run_experiments.sh \
+  -m filip/configs/runs/ablation_baseline.yaml \
+  -g 0,1
+```
+
+#### 2. Running Individual Configs with the Generic Runner
+You can also pass individual config files directly:
+```bash
+# Run a single config for 100% data on GPU 0
+bash filip/scripts/run_experiments.sh \
+  filip/configs/report_alignment_adapt_vit_large/ptbxl_sub_adapt.yaml \
+  -g 0 \
+  -p 100
+
+# Run multiple configs across 1%, 10%, and 100% splits
+bash filip/scripts/run_experiments.sh \
+  filip/configs/report_alignment_adapt_vit_large/ptbxl_super_adapt.yaml \
+  filip/configs/report_alignment_adapt_vit_large/ptbxl_sub_adapt.yaml \
+  -g 0,1 \
+  -p 1,10,100
+```
+
+#### Key Command-Line Options for `run_experiments.sh`:
+| Option | Description | Default |
+| :--- | :--- | :--- |
+| `-m, --manifest <file>` | Path to run manifest YAML under `filip/configs/runs/` | None |
+| `-g, --gpus <list>` | Comma-separated GPU IDs (e.g. `0,1,2,3`) | Auto-detects idle GPUs |
+| `-p, --train_pct <list>` | Comma-separated data split percentages (e.g. `1,10,100`) | Manifest setting or `100` |
+| `-r, --resume` | Automatically resume from `latest.pt` if available | False |
+| `-s, --skip_completed <bool>`| Skip tasks where `evaluation/metrics.txt` already exists | `true` |
+| `--dry_run` | Print queued tasks and detected GPUs without running | False |
+
+#### Automated Output Report:
+Upon completion of all tasks, `run_experiments.sh` writes a summary table to:
+`outputs/filip/{run_name}_summary_report.md`
+
+---
+
+### Method B: Experiment Group Runner (Single GPU, Multiple Splits)
+
+[`filip/scripts/run_experiment_group.sh`](file:///home/qfbqt/repo/GEM-fork/filip/scripts/run_experiment_group.sh) is ideal when you want to run a single configuration sequentially across multiple data percentages on a dedicated GPU:
+
+```bash
+bash filip/scripts/run_experiment_group.sh \
+  -c filip/configs/report_alignment_adapt_vit_large/ptbxl_sub_adapt.yaml \
+  -n vit_large_ptbxl_sub \
+  -g 0 \
+  -p "1 10 100"
+```
+
+---
+
+### Method C: End-to-End Pipeline Scripts
+
+For standardized end-to-end benchmarking, dedicated pipeline scripts automate Stage 1 + Stage 2 execution:
+
+* **ViT-Large Full Pipeline** (`filip/scripts/run_vit_large_pipeline.sh`):
+  Checks for Stage 1 checkpoint (trains if missing), then runs Stage 2 adaptation across all 6 benchmark datasets at 1%, 10%, and 100% data splits in parallel across available GPUs:
+  ```bash
+  CUDA_VISIBLE_DEVICES=0,1 bash filip/scripts/run_vit_large_pipeline.sh
+  ```
+
+* **JEPA Pretraining + Adaptation Pipeline** (`filip/scripts/run_report_alignment_jepa_large_pipeline.sh`):
+  ```bash
+  CUDA_VISIBLE_DEVICES=0,1 bash filip/scripts/run_report_alignment_jepa_large_pipeline.sh
+  ```
+
+* **Patch Size Ablation Pipeline (16 vs 32)** (`filip/scripts/run_patch_size_ablation.sh`):
+  ```bash
+  CUDA_VISIBLE_DEVICES=0,1 bash filip/scripts/run_patch_size_ablation.sh
+  ```
+
+* **Baseline Ablations (Frozen vs Unfreeze Last 2 Layers)** (`filip/scripts/run_ablation_experiments.sh`):
+  ```bash
+  bash filip/scripts/run_ablation_experiments.sh
+  ```
+
+---
+
+### Method D: Manual Single-Task Execution (Debugging / Custom Runs)
+
+If you need to manually step through training, threshold tuning, and evaluation for a single task:
+
+```bash
+CONFIG="filip/configs/report_alignment_adapt_vit_large/ptbxl_sub_adapt.yaml"
+OUT_DIR="outputs/filip/vit_large_ptbxl_sub_100"
+GPU=0
+
+# Step 1: Train downstream adaptation
+CUDA_VISIBLE_DEVICES=$GPU python filip/train/train_ptbxl_adapt.py \
+  --config "$CONFIG" \
+  --train_pct 100 \
+  --out_dir "$OUT_DIR"
+
+# Step 2: Tune decision thresholds on validation split
+CUDA_VISIBLE_DEVICES=$GPU python filip/eval/tune_thresholds.py \
+  --config "$CONFIG" \
+  --checkpoint "${OUT_DIR}/best.pt" \
+  --out_dir "${OUT_DIR}/evaluation"
+
+# Step 3: Evaluate test split metrics using tuned thresholds
+CUDA_VISIBLE_DEVICES=$GPU python filip/eval/evaluate_diagnosis.py \
+  --config "$CONFIG" \
+  --checkpoint "${OUT_DIR}/best.pt" \
+  --thresholds_file "${OUT_DIR}/evaluation/tuned_thresholds.json" \
+  --out_dir "${OUT_DIR}/evaluation"
+```
+
+Alternatively, use the single-stage wrapper scripts:
+```bash
 # Train
-bash filip/scripts/train_ptbxl_adapt.sh -c filip/configs/cpsc_diagnosis_adapt.yaml -g <gpu_id>
-# Tune Thresholds
-bash filip/scripts/tune_thresholds.sh -c filip/configs/cpsc_diagnosis_adapt.yaml -g <gpu_id>
+bash filip/scripts/train_ptbxl_adapt.sh -c "$CONFIG" -g "$GPU"
+
+# Tune thresholds
+bash filip/scripts/tune_thresholds.sh -c "$CONFIG" -ckpt "${OUT_DIR}/best.pt" -g "$GPU"
+
 # Evaluate
 bash filip/scripts/eval_diagnosis.sh \
-  -c filip/configs/cpsc_diagnosis_adapt.yaml \
-  -ckpt outputs/filip/cpsc_adapt/checkpoints/best.pt \
-  -t outputs/filip/cpsc_adapt/ptb-val-tuning/thresholds.json \
-  -o outputs/filip/cpsc_adapt/test-tuned \
-  -g 1
+  -c "$CONFIG" \
+  -ckpt "${OUT_DIR}/best.pt" \
+  -t "${OUT_DIR}/evaluation/tuned_thresholds.json" \
+  -o "${OUT_DIR}/evaluation" \
+  -g "$GPU"
+```
 
-# Train
-bash filip/scripts/train_ptbxl_adapt.sh -c filip/configs/georgia_diagnosis_adapt.yaml -g <gpu_id>
-# Tune Thresholds
-bash filip/scripts/tune_thresholds.sh -c filip/configs/georgia_diagnosis_adapt.yaml -g <gpu_id>
-# Evaluate
-bash filip/scripts/eval_diagnosis.sh \
-  -c filip/configs/georgia_diagnosis_adapt.yaml \
-  -ckpt outputs/filip/georgia_adapt/checkpoints/best.pt \
-  -t outputs/filip/georgia_adapt/ptb-val-tuning/thresholds.json \
-  -o outputs/filip/georgia_adapt/test-tuned \
-  -g 1
+---
+
+## 3. Visualization and Interpretability Analysis
+
+### Alignment Visualizations
+To generate patch-feature alignment heatmap overlays on sample ECG images:
+```bash
+bash filip/scripts/visualize_alignment.sh
+```
+
+### Interactive Notebooks
+* **Text & Patch Alignment Explorer** (`filip/eval/text_alignment_visualizer.ipynb`):
+  Loads a Stage 1 report checkpoint or Stage 2 model, scores ECGs against prompt text/diagnoses, and visualizes token-level patch alignment heatmaps.
+* **Interactive Diagnostic Visualizer** (`filip/eval/interactive_visualizer.ipynb`):
+  Provides interactive inspection of ECG lead segments and attention maps.
+
+### Patch Masking Interpretability Evaluation
+To run the minimal patch-masking sanity check (verifying whether masking top-aligned patches degrades class logits more than random masking), consult:
+[filip/patch_masking_eval_task_minimal.md](file:///home/qfbqt/repo/GEM-fork/filip/patch_masking_eval_task_minimal.md)

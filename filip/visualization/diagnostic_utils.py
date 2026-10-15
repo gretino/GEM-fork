@@ -29,6 +29,7 @@ SUBCLASS_DESCRIPTIONS = {
     'CRBBB': 'complete right bundle branch block',
     'WPW': 'Wolff-Parkinson-White syndrome',
     'LAO/LAE': 'left atrial overload or enlargement',
+    'LVH': 'left ventricular hypertrophy',
     'NORM': 'normal sinus rhythm',
     'ISC': 'ischemic ST-T changes',
     'AVB': 'atrioventricular block',

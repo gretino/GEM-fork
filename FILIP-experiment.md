@@ -628,23 +628,25 @@ Stage 2 checkpoints should record the Stage 1 checkpoint path used for initializ
 After implementation, produce these runnable commands:
 
 ```bash
-bash /filip/scripts/train_mimic_feature.sh
-bash /filip/scripts/train_ptbxl_adapt.sh
-bash /filip/scripts/eval_features.sh
-bash /filip/scripts/eval_diagnosis.sh
-bash /filip/scripts/visualize_alignment.sh
+bash filip/scripts/train_mimic_feature.sh
+bash filip/scripts/train_ptbxl_adapt.sh
+bash filip/scripts/eval_features.sh
+bash filip/scripts/eval_diagnosis.sh
+bash filip/scripts/visualize_alignment.sh
 ```
+
+For the modern multi-GPU runner (`filip/scripts/run_experiments.sh`), run manifests, 6 downstream benchmark tasks, and threshold tuning workflows, consult [filip/RUN_GUIDE.md](filip/RUN_GUIDE.md).
 
 Each script should use config files under:
 
 ```text
-/filip/configs/
+filip/configs/
 ```
 
 Each script should write outputs under:
 
 ```text
-/outputs/filip/
+outputs/filip/
 ```
 
 ## 18. Success criteria

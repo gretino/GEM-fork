@@ -10,6 +10,7 @@ GEM is an ECG-focused multimodal large language model (MLLM) repository built on
 2. **ECG-CoCa encoder stack** in `ecg_coca/`: an OpenCLIP/CoCa-derived ECG-text contrastive/captioning model used as the ECG time-series tower.
 3. **ECG image/data generation and prompt tooling** in `gem_generation/`: ECG paper image synthesis and instruction-generation prompts.
 4. **Benchmark and GPT-based evaluation tooling** in `evaluation/` and `gem_evaluation/`: ECG-Bench, ECG-Grounding, report scoring, baseline inference, and GPT judge prompts.
+5. **FILIP ECG alignment & downstream adaptation pipeline** in `filip/`: Fine-grained token- and patch-level alignment models, Stage 1 MIMIC pretraining (feature and report alignment), and multi-GPU Stage 2 adaptation/evaluation pipelines across 6 diagnostic benchmark datasets.
 
 The package metadata still identifies the Python project as `llava`, version `1.2.2.post1`, with PyTorch, Transformers, PEFT, bitsandbytes, Gradio/FastAPI, timm, and related LLaVA dependencies declared in `pyproject.toml`.
 
@@ -17,7 +18,8 @@ The package metadata still identifies the Python project as `llava`, version `1.
 
 | Path | Role |
 | --- | --- |
-| `README.md` | User-facing GEM overview, setup, data layout, training/evaluation commands, external model/data links, and citation. |
+| `README.md` | User-facing repository overview, setup, documentation links, and quickstart commands. |
+| `filip/` | Standalone FILIP ECG alignment model, data processing, configs, training, threshold tuning, and multi-GPU runner scripts. |
 | `pyproject.toml` | Python packaging metadata and core runtime/training dependency pins. |
 | `setup.sh` | Environment setup entry point referenced by the README. |
 | `predict.py`, `cog.yaml` | Cog/Replicate-style predictor wrapper and deployment metadata. |
@@ -475,3 +477,34 @@ When comparing this repository to another, inspect:
 
 - `llava/serve/` — LLaVA controller/worker/Gradio/CLI serving stack.
 - `predict.py`, `cog.yaml` — Cog-style deployment wrapper.
+
+## 14. FILIP ECG alignment subsystem (`filip/`)
+
+The `filip/` subsystem implements fine-grained interactive token- and patch-level ECG alignment:
+
+### 14.1 Components
+
+- `filip/model/`:
+  - `vision_encoder.py`: Standalone CLIP-ViT vision backbone wrapper returning patch tokens.
+  - `feature_alignment.py`: Computes late-interaction patch-to-feature similarity and top-k pooled logits.
+  - `report_alignment.py`: Token-level fine-grained image-patch to report-token contrastive loss.
+  - `filip_ecg_model.py`: End-to-end model composing vision encoder, alignment head, and diagnosis head.
+  - `losses.py`: Masked multilabel BCE, feature consistency loss, and asymmetric focal loss.
+- `filip/train/`:
+  - `train_mimic_feature.py`: Stage 1 pretraining on MIMIC-IV-ECG (supports feature alignment and report alignment).
+  - `train_ptbxl_adapt.py`: Stage 2 downstream adaptation on diagnostic classification with `--train_pct` data sampling.
+- `filip/eval/`:
+  - `tune_thresholds.py`: Maximizes F1 score per diagnostic class on validation split.
+  - `evaluate_diagnosis.py`: Evaluates test set metrics (Macro/Micro AUC, F1, Accuracy, Hamming Loss) with tuned thresholds.
+  - `evaluate_features.py`: Evaluates intermediate clinical feature predictions.
+  - `visualize_patch_alignment.py`: Renders heatmap overlays of top patch-feature alignments.
+- `filip/scripts/`:
+  - `run_experiments.sh`: Generic multi-GPU dynamic queue runner for run manifests (`filip/configs/runs/*.yaml`) across split percentages.
+  - `run_experiment_group.sh`: Single-GPU sequential runner across multiple data percentages.
+  - `run_vit_large_pipeline.sh`: ViT-Large Stage 1 + 6-benchmark parallel Stage 2 pipeline.
+  - `run_report_alignment_jepa_large_pipeline.sh`: JEPA pretraining + adaptation pipeline.
+  - `run_patch_size_ablation.sh`: Patch size 16 vs 32 ablation pipeline.
+- `filip/configs/`:
+  - `runs/`: Manifests grouping benchmark configs and split percentages.
+  - `raw_clip_baseline/`, `ablation_baseline/`: Baseline comparison configs.
+  - `report_alignment_adapt_vit_large/`: Downstream configs for the 6 benchmark datasets.
